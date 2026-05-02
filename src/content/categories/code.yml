@@ -1,7 +1,0 @@
-- name: Code
-  slug: code
-  # cover:
-  description: Share and discover useful code snippets, examples, and solutions for common programming tasks and challenges.
-  meta:
-    title: Code Snippets
-    description: Enhance your coding skills and productivity with a curated collection of practical code examples and solutions.

@@ -1,7 +1,0 @@
-- name: Linux
-  slug: linux
-  # cover: journal.jpg
-  description: Linux tips and tricks.
-  meta:
-    title: Engineering
-    description: Linux tips and tricks.
