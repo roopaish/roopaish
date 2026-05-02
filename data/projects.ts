@@ -27,7 +27,7 @@ export const projects: ProductLaunchedItem[] = [
     links: [
       {
         platform: "web",
-        url: "https://https://www.ekagajpatra.com",
+        url: "https://www.ekagajpatra.com",
       },
     ],
   },
