@@ -1,6 +1,6 @@
 #### Projects
 
-- 👨‍🎨 **[Biggya](https://biggya.com)** - Real-time expert consultations. (WIP...)
+- 👨‍🎨 **[Biggya](https://biggya.com)** - Real-time expert consultations.
 - 🪪 **[Ekagajpatra](https://www.ekagajpatra.com)** - Government document generation.
 - 📚️ **[Clamphook Mobile App](https://play.google.com/store/apps/details?id=com.clamphook.clamphook)** - Entrance prep learning app. ([Android](https://play.google.com/store/apps/details?id=com.clamphook.clamphook), [iOS](https://apps.apple.com/np/app/clamphook-academy/id6737482974))
 - 👜 **[Production Ready Ecommerce](https://ecom.roopaish.com)** - Next.js e-commerce with Stripe.
