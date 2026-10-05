@@ -137,7 +137,7 @@ export function WoodTiles({ word, className }: { word: string; className?: strin
             onPointerMove={(event) => move(event, id)}
             onPointerUp={(event) => end(event, id)}
             onPointerCancel={(event) => end(event, id)}
-            className="wood-tile w-[1.5em] font-story"
+            className="wood-tile w-[1.5em]"
             style={{ rotate: `${TILT[id % TILT.length]}deg` }}
           >
             <span className="wood-letter text-[1em]">{letter}</span>

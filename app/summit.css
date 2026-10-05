@@ -3,7 +3,6 @@
 
 @theme inline {
   --font-story: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
-  --font-scrawl: var(--font-playful), cursive;
   --font-deva: var(--font-deva-face), var(--font-display-face), serif;
   --color-cursor: var(--cursor);
   --color-cursor-foreground: var(--cursor-foreground);
@@ -117,6 +116,14 @@
   }
   70% {
     opacity: 0.9;
+  }
+}
+
+/* Headings are Newsreader at weight 500, like the reference (utilities such as
+   font-semibold still win, being in a later layer). */
+@layer base {
+  .font-story {
+    font-weight: 500;
   }
 }
 
@@ -346,7 +353,7 @@
 }
 
 .wood-letter {
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   color: #5a3510;
   text-shadow:
@@ -386,6 +393,37 @@
 }
 
 /* Where the cable leaves the case. */
+/* Phones: the display shares its row with the day / night key. */
+.kb-head {
+  display: flex;
+  gap: var(--g);
+  margin-bottom: 3.2%;
+}
+
+/* The row is as tall as the display, and the key stretches to exactly that
+   (no padding, so the icon can never make it taller). */
+.kb-head .kb-screen {
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  min-height: 2.1em;
+  margin-bottom: 0;
+}
+
+.kb-head > .kb-key {
+  flex: 0 0 calc(var(--key) * 1.2);
+  aspect-ratio: auto;
+  align-self: stretch;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* A key that is a real button presses down when tapped. */
+button.kb-key:active {
+  translate: 0 3px;
+  box-shadow: 0 0 0 var(--edge);
+}
+
 .kb-port {
   position: absolute;
   left: 50%;
@@ -467,7 +505,7 @@
   border: 1px solid color-mix(in oklab, var(--ink) 22%, var(--paper));
   background: var(--paper);
   color: color-mix(in oklab, var(--ink) 82%, var(--paper));
-  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   font-size: clamp(9px, 3.6cqw, 18px);
   line-height: 1;

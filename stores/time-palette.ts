@@ -14,18 +14,8 @@ export const palettes: Record<
 
 export const paletteOrder: PaletteId[] = ["dawn", "day", "dusk", "night"];
 
-export function paletteForHour(hour: number): PaletteId {
-  if (hour >= 5 && hour < 10) return "dawn";
-  if (hour >= 10 && hour < 17) return "day";
-  if (hour >= 17 && hour < 20) return "dusk";
-  return "night";
-}
-
 type TimePaletteStore = {
   palette: PaletteId;
-  /** True once the visitor picked a palette themselves ("time travel"). */
-  overridden: boolean;
-  setFromClock: (hour: number) => void;
   cycle: () => void;
   /** Flip between the day and night looks (what the sun / moon does). */
   toggleNight: () => void;
@@ -33,19 +23,12 @@ type TimePaletteStore = {
 
 export const useTimePalette = create<TimePaletteStore>((set) => ({
   palette: "day",
-  overridden: false,
-  setFromClock: (hour) =>
-    set((state) =>
-      state.overridden ? state : { palette: paletteForHour(hour) },
-    ),
   toggleNight: () =>
     set((state) => ({
-      overridden: true,
       palette: state.palette === "night" ? "day" : "night",
     })),
   cycle: () =>
     set((state) => ({
-      overridden: true,
       palette:
         paletteOrder[
           (paletteOrder.indexOf(state.palette) + 1) % paletteOrder.length

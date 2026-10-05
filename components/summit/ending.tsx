@@ -32,7 +32,7 @@ const PORT_Y = 42;
 // A handwritten margin note, like scribbles on the page.
 function Scribble({ className, rotate = -10, children }: { className?: string; rotate?: number; children: ReactNode }) {
   return (
-    <p className={cn("font-scrawl text-[1.05rem] leading-[1.3] tracking-[0.08em] text-foreground [-webkit-text-stroke:0.6px_currentColor]", className)} style={{ rotate: `${rotate}deg` }}>
+    <p className={cn("font-story text-lg italic leading-[1.25] text-foreground", className)} style={{ rotate: `${rotate}deg` }}>
       {children}
     </p>
   );

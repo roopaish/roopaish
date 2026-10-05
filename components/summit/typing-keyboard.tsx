@@ -1,5 +1,6 @@
 "use client";
 
+import { SkyKey } from "./sky-body";
 import { useEffect, useState, type CSSProperties } from "react";
 import { announceTyped, startTyping } from "./intro-state";
 import { PAUSE_AFTER_TYPING_MS } from "./timing";
@@ -24,7 +25,7 @@ const hash = (n: number) => {
  * from the middle of the top edge (the point `kb-port` marks). Without a
  * `message` it is just a still keyboard.
  */
-export function TypingKeyboard({ className, message, startDelay = 450 }: { className?: string; message?: string; startDelay?: number }) {
+export function TypingKeyboard({ className, message, startDelay = 450, themeKey = false }: { className?: string; message?: string; startDelay?: number; themeKey?: boolean }) {
   const [typed, setTyped] = useState("");
   const [down, setDown] = useState<string | null>(null);
   // Keys held on the visitor's real keyboard light up their match here.
@@ -83,21 +84,26 @@ export function TypingKeyboard({ className, message, startDelay = 450 }: { class
   }, [message, startDelay]);
 
   return (
-    <div aria-hidden="true" className={`kb relative ${className ?? ""}`}>
-      <span className="kb-port" />
+    // Mostly decoration, so hidden from screen readers; the theme key (when
+    // there is one) is a real button, so the whole case is not hidden then.
+    <div aria-hidden={themeKey ? undefined : true} className={`kb relative ${className ?? ""}`}>
+      <span aria-hidden="true" className="kb-port" />
       {message !== undefined && (
-        <div className="kb-screen">
-          <span>
-            {[...typed].map((letter, index) => (
-              <span key={index} className="kb-char">
-                {letter}
-              </span>
-            ))}
-          </span>
-          <span className="kb-caret" />
+        <div className={themeKey ? "kb-head" : undefined}>
+          <div aria-hidden="true" className="kb-screen">
+            <span>
+              {[...typed].map((letter, index) => (
+                <span key={index} className="kb-char">
+                  {letter}
+                </span>
+              ))}
+            </span>
+            <span className="kb-caret" />
+          </div>
+          {themeKey && <SkyKey />}
         </div>
       )}
-      <div className="flex flex-col gap-[1.6%]">
+      <div aria-hidden="true" className="flex flex-col gap-[1.6%]">
         {ROWS.map((row, rowIndex) => (
           <div key={row.keys} className="kb-row" style={{ "--indent": row.indent, "--row": rowIndex } as CSSProperties}>
             {[...row.keys].map((letter) => (

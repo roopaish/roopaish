@@ -16,7 +16,7 @@ export function Altimeter({ subscribe }: { subscribe: Subscribe }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <p aria-hidden="true" className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 font-mono text-[11px] tracking-wide text-muted-foreground">
+    <p aria-hidden="true" className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 text-[11px] tracking-wide text-muted-foreground">
       ▲ <span ref={ref}>1,400 m</span>
     </p>
   );

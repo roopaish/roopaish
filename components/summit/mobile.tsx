@@ -17,7 +17,6 @@ import {
 import { SiteButton } from "./site-button";
 import { IntroNote } from "./intro-note";
 import { TYPING_START_MS } from "./timing";
-import { SkyBody } from "./sky-body";
 import { TypingKeyboard } from "./typing-keyboard";
 
 // ---------------------------------------------------------------------------
@@ -153,17 +152,16 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
 
       {/* the making of a full stack developer */}
       <div className="relative h-[132svh]">
-        <SkyBody className="absolute left-6 top-[15svh] z-10 size-12" />
         <div className={cn("absolute inset-x-0 top-[36svh] flex justify-center", ready ? "opacity-100" : "animate-reveal [animation-delay:.25s]")}>
           <div className="relative w-[78%]">
-            <TypingKeyboard message={copy.intro.typed} startDelay={TYPING_START_MS} />
+            <TypingKeyboard message={copy.intro.typed} startDelay={TYPING_START_MS} themeKey />
             <span ref={keyboardRef} className="absolute left-1/2 top-0" />
           </div>
         </div>
         <div className="absolute right-5 top-[17svh] flex w-44 items-start gap-1.5 text-[0.8rem] leading-snug text-foreground">
           <IntroNote text={copy.intro.note} arrowClassName="mt-4 h-5 w-7 shrink-0" />
         </div>
-        <p className={cn("absolute left-5 top-[72svh] text-[2.6rem] font-semibold leading-[0.95]", ready ? "opacity-100" : "animate-reveal [animation-delay:0s]")}>{copy.intro.top}<br /><span className="font-story italic">{copy.intro.mobileEmphasis[0]}<br />{copy.intro.mobileEmphasis[1]}</span></p>
+        <p className={cn("absolute left-5 top-[calc(100svh-1.5rem)] -translate-y-full text-[2.6rem] font-semibold leading-[0.95]", ready ? "opacity-100" : "animate-reveal [animation-delay:0s]")}>{copy.intro.top}<br /><span className="font-story italic">{copy.intro.mobileEmphasis[0]}<br />{copy.intro.mobileEmphasis[1]}</span></p>
         <Anchor x="70%" y="29svh" />
         <Anchor x="94%" y="40svh" />
         <Anchor x="90%" y="70svh" />

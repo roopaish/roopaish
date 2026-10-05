@@ -5,7 +5,6 @@ import SmoothScroll from "@/components/smooth-scroll";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import {
-  Ephesis,
   Inter,
   JetBrains_Mono,
   Manrope,
@@ -39,13 +38,6 @@ const fontMono = JetBrains_Mono({
   display: "swap",
 });
 
-const fontPlayful = Ephesis({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-playful",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "Rupesh Budhathoki | Full Stack Developer",
   description:
@@ -64,7 +56,6 @@ export default function RootLayout({
           ${fontInter.variable}
           ${fontInter.className}
           ${fontManrope.variable}
-          ${fontPlayful.variable}
           ${fontDisplay.variable}
           ${fontMono.variable}
           antialiased`}

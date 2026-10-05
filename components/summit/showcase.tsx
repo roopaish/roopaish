@@ -1,8 +1,8 @@
 "use client";
 
 import { copy, projectFilters, summitProjects, type SummitProject } from "@/data/summit";
-import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { PrintDesk } from "./print-desk";
 import { SiteButton } from "./site-button";
 import { WoodTiles } from "./wood-tiles";
 import { WorkShelf } from "./work-shelf";
@@ -39,7 +39,7 @@ export function Showcase({ filter, setFilter }: { filter: string; setFilter: (fi
           {filtered.length === 0 && <p className="py-24 text-foreground">{copy.works.empty}</p>}
           {shelved.length > 0 && (
             <div className="flex justify-center">
-              <SiteButton variant="glassDark" size="pill" className="min-w-64" onClick={() => setShelfOpen(true)} data-cursor={copy.works.moreCursor}>
+              <SiteButton variant="glassDark" size="pill" className="w-max max-w-full justify-center" onClick={() => setShelfOpen(true)} data-cursor={copy.works.moreCursor}>
                 {copy.works.more}
               </SiteButton>
             </div>
@@ -51,100 +51,15 @@ export function Showcase({ filter, setFilter }: { filter: string; setFilter: (fi
   );
 }
 
-// A project's screenshots. The whole picture is shown (never cropped); the
-// spare space shows the stickers on the wooden board behind it. With more than one, small thumbnails below
-// switch the big one.
+// A project's screenshots, laid out loosely on the wooden desk (see PrintDesk).
+// Nothing here links out; the drawer below has the way to the live site.
 function ProjectShots({ project, children }: { project: SummitProject; children: ReactNode }) {
-  const [active, setActive] = useState(0);
-  const { images, title, live } = project;
-  const go = (step: number) => setActive((index) => (index + step + images.length) % images.length);
-
-  // Swiping: the strip follows the pointer, and letting go past a sixth of the
-  // width moves a slide. Short wobbles stay clicks, so the link still works.
-  const [drag, setDrag] = useState<number | null>(null);
-  const start = useRef<{ x: number; id: number } | null>(null);
-  const swiped = useRef(false);
-  const onDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (images.length < 2) return;
-    start.current = { x: event.clientX, id: event.pointerId };
-    swiped.current = false;
-  };
-  const onMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!start.current) return;
-    const dx = event.clientX - start.current.x;
-    if (!swiped.current && Math.abs(dx) < 6) return;
-    if (!swiped.current) event.currentTarget.setPointerCapture(start.current.id);
-    swiped.current = true;
-    setDrag(dx);
-  };
-  const onUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (!start.current) return;
-    const dx = event.clientX - start.current.x;
-    start.current = null;
-    if (!swiped.current) return;
-    setDrag(null);
-    if (Math.abs(dx) > event.currentTarget.clientWidth / 6) go(dx < 0 ? 1 : -1);
-  };
-  const Frame = live ? "a" : "div";
   return (
     <>
-      {/* wood board, stickers stuck on it (see .wood-board), and the picture on top */}
       <div className="wood-board z-10">
-        <div className="relative">
-          {/* the slides sit side by side and the track slides under the board's edge */}
-          <div className="touch-pan-y select-none overflow-hidden" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={(event) => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
-            <Frame
-              {...(live ? { href: live, target: "_blank", rel: "noreferrer", "data-cursor": "see it live ↗" } : {})}
-              className="block"
-            >
-              <div className={cn("flex", drag === null && "transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.25,1)]")} style={{ transform: `translateX(calc(${-active * 100}% + ${drag ?? 0}px))` }}>
-                {images.map((src, index) => (
-                  // each picture keeps its own proportions, so its rounded corners are the picture's own
-                  <div key={src} className="flex aspect-[4/3] w-full shrink-0 items-center justify-center">
-                    <img
-                      src={src}
-                      alt={`${title} screenshot ${index + 1}`}
-                      loading="lazy"
-                      draggable={false}
-                      className="max-h-full max-w-full rounded-[10px] drop-shadow-[0_12px_20px_rgb(0_0_0/0.35)] transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                    />
-                  </div>
-                ))}
-              </div>
-            </Frame>
-          </div>
-          {images.length > 1 && (
-            <>
-              <SiteButton variant="cutout" aria-label={`Previous screenshot of ${title}`} onClick={() => go(-1)} data-cursor="previous" className="absolute inset-y-0 left-0 my-auto h-9 w-12 md:h-12 md:w-16 -rotate-3 hover:-rotate-6">
-                <CutoutArrow flip />
-              </SiteButton>
-              <SiteButton variant="cutout" aria-label={`Next screenshot of ${title}`} onClick={() => go(1)} data-cursor="next" className="absolute inset-y-0 right-0 my-auto h-9 w-12 md:h-12 md:w-16 rotate-2 hover:rotate-5">
-                <CutoutArrow />
-              </SiteButton>
-            </>
-          )}
-        </div>
+        <PrintDesk title={project.title} images={project.images} />
       </div>
       {children}
-      {/* screenshot thumbnails, parked while the arrows carry the carousel
-      {images.length > 1 && (
-        <div className="mt-6 flex gap-3 overflow-x-auto px-1 pb-4 pt-1">
-          {images.map((src, index) => (
-            <button
-              key={src}
-              type="button"
-              onClick={() => setActive(index)}
-              aria-label={`Show screenshot ${index + 1} of ${title}`}
-              aria-pressed={index === active}
-              data-cursor={`${index + 1} / ${images.length}`}
-              className={cn("wood-chip flex h-14 w-20 shrink-0 items-center justify-center p-1.5 transition-opacity", index === active ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "opacity-70 hover:opacity-100")}
-            >
-              <img src={src} alt="" loading="lazy" className="max-h-full max-w-full rounded-[6px] drop-shadow-[0_3px_5px_rgb(0_0_0/0.35)]" />
-            </button>
-          ))}
-        </div>
-      )}
-      */}
     </>
   );
 }
@@ -192,17 +107,6 @@ function DrawerItem({ order, className, children }: { order: number; className?:
     filter: "blur(calc((1 - var(--t)) * 6px))",
   } as CSSProperties;
   return <div className={className} style={style}>{children}</div>;
-}
-
-// A block arrow cut out of paper with scissors: a little uneven, pale, and
-// lifted off the board by the button's shadow.
-function CutoutArrow({ flip }: { flip?: boolean }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 64 48" className={cn("size-full", flip && "-scale-x-100")}>
-      <polygon points="5,17.5 37,15 36,3.5 60.5,24.5 38,44.5 38.5,33 6.5,32" fill="#f6f0e1" stroke="#d6cbb2" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M9 21 L35 19 M9 28.5 L36 29" fill="none" stroke="#d6cbb2" strokeOpacity="0.7" strokeWidth="0.8" strokeLinecap="round" />
-    </svg>
-  );
 }
 
 // A four-hole shirt button, sewn on with red thread that makes an arrow.

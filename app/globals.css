@@ -9,7 +9,6 @@
 @theme {
   --font-inter: "var(--font-inter)", sans-serif;
   --font-manrope: "var(--font-manrope)", sans-serif;
-  --font-playful: "var(--font-playful)", sans-serif;
 }
 
 @theme inline {
@@ -17,7 +16,7 @@
   --font-mono: var(--font-mono-face), ui-monospace, monospace;
 }
 
-/* Homepage palette, updated from the visitor's clock (see time-palette-sync).
+/* Homepage palette, set by the visitor (see time-palette-sync).
    Accents come from Nepali prayer flags. */
 :root {
   --paper: #ffffff;

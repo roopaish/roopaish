@@ -85,7 +85,7 @@ export function RangeBackdrop({ layersRef }: { layersRef: MutableRefObject<(HTML
               return (
                 <p
                   key={name}
-                  className="absolute -translate-x-1/2 -translate-y-[calc(100%+4px)] whitespace-nowrap text-center font-mono text-[10px] leading-tight text-muted-foreground/60"
+                  className="absolute -translate-x-1/2 -translate-y-[calc(100%+4px)] whitespace-nowrap text-center text-[10px] leading-tight text-muted-foreground/60"
                   style={{ left: `${x}vw`, top: `${y}vh` }}
                 >
                   {name}

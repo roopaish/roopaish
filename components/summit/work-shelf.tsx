@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowLeft, ArrowUpRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { PrintDesk } from "./print-desk";
 
 // The work, standing on a wooden shelf like CDs in their cases. The frame rises
 // into place, then the cases drop into their slots one by one; hovering a case
@@ -169,11 +170,10 @@ const container = {
 const reveal = { hidden: { opacity: 0, y: 18, filter: "blur(6px)" }, shown: { opacity: 1, y: 0, filter: "blur(0px)" } };
 
 // An open jewel case: the lid (the cover) swings up on its left hinge, and
-// inside are the pictures (thumbnails switch between them), the name, the
+// inside are the pictures (laid out loose on a desk, free to move around), the name, the
 // description and the way out to the live site, which opens in a new tab.
 // `closing` swings the lid shut again, then calls `onClosed`.
 function Opened({ project, reduce, closing, onBack, onClosed }: { project: SummitProject; reduce: boolean; closing: boolean; onBack: () => void; onClosed: () => void }) {
-  const [active, setActive] = useState(0);
   const { images, title, tags, blurb, live, number, image } = project;
   return (
     <motion.div
@@ -193,39 +193,8 @@ function Opened({ project, reduce, closing, onBack, onClosed }: { project: Summi
             initial="hidden"
             animate={closing ? "hidden" : "shown"}
           >
-            <motion.div variants={reveal} className="min-w-0">
-              <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[10px] border border-white/15 bg-black/35 p-3">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.img
-                    key={images[active]}
-                    src={images[active]}
-                    alt={`${title} screenshot ${active + 1}`}
-                    draggable={false}
-                    className="max-h-full max-w-full rounded-[8px] drop-shadow-[0_10px_18px_rgb(0_0_0/0.45)]"
-                    initial={{ opacity: 0, scale: reduce ? 1 : 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: reduce ? 1 : 0.98 }}
-                    transition={{ duration: reduce ? 0 : 0.22 }}
-                  />
-                </AnimatePresence>
-              </div>
-              {images.length > 1 && (
-                <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                  {images.map((src, index) => (
-                    <button
-                      key={src}
-                      type="button"
-                      onClick={() => setActive(index)}
-                      aria-label={`Show screenshot ${index + 1} of ${title}`}
-                      aria-pressed={index === active}
-                      data-cursor={`${index + 1} / ${images.length}`}
-                      className={`grid h-14 w-20 shrink-0 place-items-center rounded-[6px] border bg-black/35 p-1 transition ${index === active ? "border-white/80" : "border-white/20 opacity-60 hover:opacity-100"}`}
-                    >
-                      <img src={src} alt="" loading="lazy" draggable={false} className="max-h-full max-w-full rounded-[3px]" />
-                    </button>
-                  ))}
-                </div>
-              )}
+            <motion.div variants={reveal} className="min-w-0 rounded-[10px] border border-white/15 bg-black/35">
+              <PrintDesk title={title} images={images} />
             </motion.div>
 
             <div className="flex min-w-0 flex-col items-start">

@@ -175,7 +175,6 @@ function CopyEmail({ email }: { email: string }) {
 
 function TimeTravel() {
   const palette = useTimePalette((state) => state.palette);
-  const overridden = useTimePalette((state) => state.overridden);
   const cycle = useTimePalette((state) => state.cycle);
   const [time, setTime] = useState<{ yours: string; kathmandu: string } | null>(
     null,
@@ -204,9 +203,7 @@ function TimeTravel() {
       <span className="size-2.5 rounded-full border border-current bg-(--paper)" />
       <span>
         {time ? `${time.kathmandu} in Kathmandu · ` : ""}
-        {overridden
-          ? `Time travelling: ${palettes[palette].label} mode.`
-          : `${time?.yours ?? "…"} for you, so this page is in ${palettes[palette].label} mode.`}{" "}
+        {`${palettes[palette].label} mode.`}{" "}
         <span className="underline underline-offset-4">Change</span>
       </span>
     </button>
