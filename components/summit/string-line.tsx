@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useIntroTyped } from "./intro-state";
+import { CABLE_DRAW_MS } from "./timing";
 import { CANVAS_TRAVEL_VW, CANVAS_VW, CABLE, getThreadSamples, THREAD } from "./thread";
 
 // While scrolling, the string's tip is anchored to ~55% of the viewport width,
@@ -15,6 +17,8 @@ export const REVEAL_INSET = 4;
 export type Subscribe = (listen: (progress: number) => void) => () => void;
 
 export function StringLine({ subscribe }: { subscribe: Subscribe }) {
+  // The cable waits for the keyboard to finish typing its greeting.
+  const typed = useIntroTyped();
   const pathRef = useRef<SVGPathElement>(null);
   const tipRef = useRef<SVGCircleElement>(null);
 
@@ -49,7 +53,7 @@ export function StringLine({ subscribe }: { subscribe: Subscribe }) {
   return (
     <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox={`0 0 ${CANVAS_VW * 10} 1000`} preserveAspectRatio="none">
       <path ref={pathRef} pathLength="1" style={{ strokeDashoffset: 1 }} d={THREAD} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1" />
-      <path className="animate-draw-string" style={{ animationDuration: "2.2s", animationDelay: ".7s" }} pathLength="1" strokeDasharray="1" d={CABLE} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path className={typed ? "animate-draw-string" : undefined} style={{ strokeDashoffset: 1, animationDuration: `${CABLE_DRAW_MS}ms`, animationTimingFunction: "cubic-bezier(0.45, 0, 0.3, 1)" }} pathLength="1" strokeDasharray="1" d={CABLE} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       <circle ref={tipRef} r="9" cx="569" cy="199" style={{ opacity: 0 }} fill="#c43a30" stroke="var(--paper)" strokeWidth="3" />
     </svg>
   );

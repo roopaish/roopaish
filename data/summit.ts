@@ -10,6 +10,9 @@ const social = (platform: string) =>
 
 export const summitName = profile.name;
 
+/** The lowercase name shown in the header. */
+export const siteHandle = "roopaish";
+
 export const summitLinks = {
   email: profile.email,
   linkedin: social("LinkedIn"),
@@ -21,9 +24,9 @@ export const summitLinks = {
 export const art = {
   laptop: "/placeholder/laptop.png",
   camera: "/placeholder/phone.png",
-  cat: "/placeholder/cat.png",
+  movies: "/placeholder/movies.svg",
   keys: "/placeholder/keyboard.png",
-  badminton: "/placeholder/joystick.png",
+  nature: "/placeholder/nature.svg",
   globe: "/placeholder/globe.png",
   brain: "/placeholder/bulb.png",
   astronaut: "/placeholder/rocket.png",
@@ -33,16 +36,12 @@ export const art = {
 export const copy = {
   greeting: "scroll down. follow the cable.",
   intro: {
-    namaste: "नमस्ते",
     typed: `hey there, ${summitName.toLowerCase()} here.`,
     top: "the",
-    middle: "making of a",
     emphasis: "full stack developer.",
     note: "it all starts at a keyboard.",
-    welcome: "or, namaste, and welcome to my portfolio :)",
     work: "view work",
     talk: "let's talk",
-    talkCursor: "i don't bite.",
   },
   tinker: {
     say: "careful. side trails ahead.",
@@ -51,10 +50,9 @@ export const copy = {
     sub: "a polite way to say i can't stop starting new projects.",
     laptop: "this is where most things begin.",
     camera: "side projects, launched on weekends.",
-    cat: "head of distraction. kathmandu street cat.",
+    movies: "movies and series. one more episode. always.",
     keys: "one more feature. just one.",
-    badminton: "let's do a match?",
-    badmintonMobile: "competitive. occasionally.",
+    nature: "the best debugging happens on a nature walk.",
   },
   heart: {
     say: "okay, the soft part.",
@@ -77,7 +75,7 @@ export const copy = {
     summaryBottom: "most things i built, i ended up looking after.",
     // TODO: your real years and stories.
     stops: [
-      { year: "2019", title: "where it started.", line: "computer engineering in Kathmandu. the first for-loop did not terminate." },
+      { year: "2019", title: "where it started.", line: "software engineering in Kathmandu, Nepal." },
       { year: "2021", title: "went mobile.", line: "Flutter at Clamphook: online classes, tests and payments." },
       { year: "2022", title: "went freelance.", line: "e-commerce with Vendure, a restaurant booking app, legal documents." },
       { year: "2023", title: "tried web3.", line: "a reward platform for eco-projects at ORGO." },
@@ -101,7 +99,6 @@ export const copy = {
     buttonCursor: "show me the work ↓",
   },
   works: {
-    eyebrow: "summit log",
     heading: "WORKS",
     title: ["places i've", "planted a flag."],
     blurb: "web and mobile products, built end to end.",

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
+import { announceTyped, startTyping } from "./intro-state";
+import { PAUSE_AFTER_TYPING_MS } from "./timing";
 
 // A QWERTY layout. `indent` shifts a row right, in key widths.
 const ROWS = [
@@ -22,7 +24,7 @@ const hash = (n: number) => {
  * from the middle of the top edge (the point `kb-port` marks). Without a
  * `message` it is just a still keyboard.
  */
-export function TypingKeyboard({ className, message, startDelay = 600 }: { className?: string; message?: string; startDelay?: number }) {
+export function TypingKeyboard({ className, message, startDelay = 450 }: { className?: string; message?: string; startDelay?: number }) {
   const [typed, setTyped] = useState("");
   const [down, setDown] = useState<string | null>(null);
   // Keys held on the visitor's real keyboard light up their match here.
@@ -59,9 +61,11 @@ export function TypingKeyboard({ className, message, startDelay = 600 }: { class
     if (!message) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setTyped(message);
+      announceTyped();
       return;
     }
     setTyped("");
+    startTyping();
     const timers: number[] = [];
     let index = 0;
     const step = () => {
@@ -70,9 +74,11 @@ export function TypingKeyboard({ className, message, startDelay = 600 }: { class
       setDown(letter);
       timers.push(window.setTimeout(() => setDown(null), 55));
       index += 1;
-      if (index < message.length) timers.push(window.setTimeout(step, 38 + hash(index) * 52));
+      if (index < message.length) timers.push(window.setTimeout(step, 36 + hash(index) * 48));
+      else timers.push(window.setTimeout(announceTyped, PAUSE_AFTER_TYPING_MS));
     };
-    timers.push(window.setTimeout(step, startDelay));
+    // startDelay counts from page load, so a slow start never adds to it.
+    timers.push(window.setTimeout(step, Math.max(0, startDelay - performance.now())));
     return () => timers.forEach((id) => window.clearTimeout(id));
   }, [message, startDelay]);
 
@@ -81,7 +87,13 @@ export function TypingKeyboard({ className, message, startDelay = 600 }: { class
       <span className="kb-port" />
       {message !== undefined && (
         <div className="kb-screen">
-          <span>{typed}</span>
+          <span>
+            {[...typed].map((letter, index) => (
+              <span key={index} className="kb-char">
+                {letter}
+              </span>
+            ))}
+          </span>
           <span className="kb-caret" />
         </div>
       )}

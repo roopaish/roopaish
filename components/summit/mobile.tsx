@@ -15,6 +15,8 @@ import {
   type Waypoint,
 } from "./thread";
 import { SiteButton } from "./site-button";
+import { IntroNote } from "./intro-note";
+import { TYPING_START_MS } from "./timing";
 import { TypingKeyboard } from "./typing-keyboard";
 
 // ---------------------------------------------------------------------------
@@ -140,7 +142,7 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
   }, []);
 
   return (
-    <div ref={rootRef} className="relative overflow-hidden md:hidden">
+    <div ref={rootRef} className="halo relative overflow-hidden md:hidden">
       {geo && (
         <svg aria-hidden="true" className={cn("pointer-events-none absolute left-0 top-0 transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")} width={geo.w} height={geo.h} viewBox={`0 0 ${geo.w} ${geo.h}`}>
           <path ref={pathRef} d={geo.d} pathLength="1" strokeDasharray="1" style={{ strokeDashoffset: 1 }} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -150,17 +152,16 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
 
       {/* the making of a full stack developer */}
       <div className="relative h-[132svh]">
-        <div className={cn("absolute inset-x-0 top-[36svh] flex justify-center", ready ? "opacity-100" : "animate-reveal [animation-delay:.4s]")}>
+        <div className={cn("absolute inset-x-0 top-[36svh] flex justify-center", ready ? "opacity-100" : "animate-reveal [animation-delay:.25s]")}>
           <div className="relative w-[78%]">
-            <TypingKeyboard message={copy.intro.typed} />
+            <TypingKeyboard message={copy.intro.typed} startDelay={TYPING_START_MS} />
             <span ref={keyboardRef} className="absolute left-1/2 top-0" />
           </div>
         </div>
-        <div className={cn("absolute right-5 top-[17svh] flex w-44 items-start gap-1.5 text-[0.8rem] leading-snug text-muted-foreground", ready ? "opacity-100" : "animate-reveal [animation-delay:2.2s]")}>
-          <svg aria-hidden="true" viewBox="0 0 40 30" className="mt-4 h-5 w-7 shrink-0"><path d="M38 4 C24 6 12 14 4 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><path d="M4 24 L13 22 M4 24 L7 15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-          <span>{copy.intro.note}</span>
+        <div className="absolute right-5 top-[17svh] flex w-44 items-start gap-1.5 text-[0.8rem] leading-snug text-muted-foreground">
+          <IntroNote text={copy.intro.note} arrowClassName="mt-4 h-5 w-7 shrink-0" />
         </div>
-        <p className={cn("absolute left-5 top-[90svh] text-[2.6rem] font-semibold leading-[0.95]", ready ? "opacity-100" : "animate-reveal [animation-delay:2.2s]")}>{copy.intro.top}<br />{copy.intro.middle}<br /><span className="font-story italic">{copy.intro.emphasis}</span></p>
+        <p className={cn("absolute left-5 top-[72svh] text-[2.6rem] font-semibold leading-[0.95]", ready ? "opacity-100" : "animate-reveal [animation-delay:0s]")}>{copy.intro.top}<br /><span className="font-story italic">{copy.intro.emphasis}</span></p>
         <Anchor x="70%" y="29svh" />
         <Anchor x="94%" y="40svh" />
         <Anchor x="90%" y="70svh" />
@@ -180,8 +181,8 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         </div>
         <Anchor x="95%" y={590} />
         <MobileObject src={art.astronaut} alt="a rocket" label={copy.tinker.camera} style={{ left: "4%", top: 630 }} delay=".8s" />
-        <MobileObject src={art.cat} alt="a cat wearing sunglasses" label={copy.tinker.cat} style={{ right: "3%", top: 820 }} delay="1.2s" />
-        <MobileObject src={art.badminton} alt="a game controller" label={copy.tinker.badminton} style={{ left: "6%", top: 1010 }} delay="1.6s" />
+        <MobileObject src={art.movies} alt="a clapperboard" label={copy.tinker.movies} style={{ right: "3%", top: 820 }} delay="1.2s" />
+        <MobileObject src={art.nature} alt="pine trees on a hill" label={copy.tinker.nature} style={{ left: "6%", top: 1010 }} delay="1.6s" />
       </div>
 
       {/* but few things have my heart — object above its words, alternating sides */}
@@ -261,7 +262,7 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         <div className="relative mt-7 inline-block">
           <span data-anchor className="absolute left-[calc(100%+2.75rem)] top-[-0.25rem]" />
           <span data-anchor className="absolute left-full top-1/2" />
-          <SiteButton variant="ink" onClick={onWork}>{copy.finale.button} <ArrowDown className="ml-2 h-4 w-4" /></SiteButton>
+          <SiteButton variant="glassDark" onClick={onWork}>{copy.finale.button} <ArrowDown className="ml-2 h-4 w-4" /></SiteButton>
         </div>
       </div>
     </div>

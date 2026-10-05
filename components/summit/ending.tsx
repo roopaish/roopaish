@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { say } from "./bubbles";
+import { AsciiCat } from "./ascii-cat";
 import { FlagBunting } from "./flag-bunting";
+import { SiteButton } from "./site-button";
 import { threadPath } from "./thread";
 import { TypingKeyboard } from "./typing-keyboard";
 
@@ -45,8 +47,6 @@ function ScribbleArrow({ d, head, className, style }: { d: string; head: string;
     </svg>
   );
 }
-
-const pill = "inline-flex items-center justify-between gap-10 rounded-xl px-5 text-[1.05rem] transition-colors";
 
 // The end. The cable leaves the last word of "let's build something worth the
 // keystrokes." and winds across the page to plug into the keyboard.
@@ -138,19 +138,35 @@ export function Closing() {
         <p className="mb-3 font-deva text-2xl text-muted-foreground">{copy.closing.greetingDeva}</p>
         <p className="font-story text-[clamp(2.2rem,4.4vw,4.8rem)] leading-[1.02] tracking-[-0.01em]">{copy.closing.pitchTop}<br /><em><span ref={endRef}>{copy.closing.pitchBottom}</span></em></p>
         <div className="relative mt-14 flex w-fit flex-col md:mt-28 items-start gap-3">
-          <a href={`mailto:${summitLinks.email}`} className={cn(pill, "min-w-64 bg-foreground py-3 text-background hover:bg-foreground/85")} data-cursor="send the interesting idea.">{summitLinks.email} <ArrowUpRight className="h-4 w-4" /></a>
+          <SiteButton asChild variant="glassDark" size="pill" className="min-w-64">
+            <a href={`mailto:${summitLinks.email}`} data-cursor="send the interesting idea.">{summitLinks.email} <ArrowUpRight className="h-4 w-4" /></a>
+          </SiteButton>
           <div className="flex flex-wrap gap-3">
-            <a href={summitLinks.linkedin} target="_blank" rel="noreferrer" className={cn(pill, "border border-foreground/50 py-2.5 hover:bg-foreground/5 max-md:bg-background")} data-cursor="the professional version.">linkedin <ArrowUpRight className="h-4 w-4" /></a>
-            <a href={summitLinks.github} target="_blank" rel="noreferrer" className={cn(pill, "border border-foreground/50 py-2.5 hover:bg-foreground/5 max-md:bg-background")} data-cursor="where the side projects live.">github <ArrowUpRight className="h-4 w-4" /></a>
-            <a href={summitLinks.x} target="_blank" rel="noreferrer" className={cn(pill, "border border-foreground/50 py-2.5 hover:bg-foreground/5 max-md:bg-background")} data-cursor="unfiltered thoughts.">x <ArrowUpRight className="h-4 w-4" /></a>
+            <SiteButton asChild variant="glass" size="pillSm">
+              <a href={summitLinks.linkedin} target="_blank" rel="noreferrer" data-cursor="the professional version.">linkedin <ArrowUpRight className="h-4 w-4" /></a>
+            </SiteButton>
+            <SiteButton asChild variant="glass" size="pillSm">
+              <a href={summitLinks.github} target="_blank" rel="noreferrer" data-cursor="how i got here, one commit at a time.">github <ArrowUpRight className="h-4 w-4" /></a>
+            </SiteButton>
+            <SiteButton asChild variant="glass" size="pillSm">
+              <a href={summitLinks.x} target="_blank" rel="noreferrer" data-cursor="a quiet corner. i rarely post, but i'm still around.">x <ArrowUpRight className="h-4 w-4" /></a>
+            </SiteButton>
           </div>
         </div>
         <div className="relative mt-16 md:hidden">
           <TypingKeyboard className="mx-auto w-[92%]" />
+          <AsciiCat className="mx-auto mt-10 w-fit" />
         </div>
       </div>
 
-      <button onClick={() => document.getElementById("brain")?.scrollIntoView({ behavior: "smooth" })} className="mt-10 block bg-transparent text-xs text-muted-foreground/70 md:absolute md:bottom-5 md:right-8 md:mt-0" data-cursor={copy.closing.backCursor}>{copy.closing.back}</button>
+      {/* the cat that has been chewing on the laptop all along */}
+      <div {...arrive(seen, ".5s", "absolute bottom-6 left-[4.5vw] hidden md:block")}>
+        <AsciiCat />
+      </div>
+
+      <SiteButton variant="quiet" onClick={() => document.getElementById("brain")?.scrollIntoView({ behavior: "smooth" })} className="mt-10 md:absolute md:bottom-5 md:right-8 md:mt-0" data-cursor={copy.closing.backCursor}>
+        {copy.closing.back}
+      </SiteButton>
     </section>
   );
 }

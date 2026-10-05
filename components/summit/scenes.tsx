@@ -17,27 +17,31 @@ import {
   LOOP_X,
   LOOP_Y,
 } from "./thread";
+import { IntroNote } from "./intro-note";
+import { useIntroTyped } from "./intro-state";
+import { TYPING_START_MS } from "./timing";
 import { SiteButton } from "./site-button";
 import { TypingKeyboard } from "./typing-keyboard";
 
-export function IntroScene({ contentRevealed, noteRevealed }: { contentRevealed: boolean; noteRevealed: boolean }) {
+// Desktop intro order: the keyboard appears and types its greeting, the cable
+// and note start, and only then does the text around them fade in. (Phones
+// keep their own order in mobile.tsx: text first, then the keyboard.)
+export function IntroScene({ contentRevealed }: { contentRevealed: boolean }) {
+  const typed = useIntroTyped();
   return (
     <div className="absolute left-0 top-0 h-full w-screen">
-      <div className={cn("absolute w-[min(40vw,660px)] -translate-x-1/2", contentRevealed ? "opacity-100" : "animate-reveal [animation-delay:.3s]")} style={{ left: `${KEY_X}vw`, top: `${KEY_TOP}vh` }}>
-        <TypingKeyboard message={copy.intro.typed} />
+      <div className={cn("absolute w-[min(40vw,660px)] -translate-x-1/2", contentRevealed ? "opacity-100" : "animate-reveal")} style={{ left: `${KEY_X}vw`, top: `${KEY_TOP}vh` }}>
+        <TypingKeyboard message={copy.intro.typed} startDelay={TYPING_START_MS} />
       </div>
-      <div className={cn("absolute bottom-10 left-8 transition-all duration-700 sm:bottom-8", contentRevealed ? "opacity-100" : "animate-reveal [animation-delay:2.2s]")}>
-        <p className="mb-3 font-deva text-3xl text-muted-foreground sm:text-4xl">{copy.intro.namaste}</p>
-        <p className="text-4xl font-semibold leading-[0.95] sm:text-5xl">{copy.intro.top}<br />{copy.intro.middle}<br /><span className="font-story italic">{copy.intro.emphasis}</span></p>
+      <div className={cn("absolute bottom-10 left-8 transition-all duration-700 sm:bottom-8", typed ? "animate-reveal [animation-delay:1.3s]" : "opacity-0")}>
+        <p className="text-4xl font-semibold leading-[0.95] sm:text-5xl">{copy.intro.top}<br /><span className="font-story italic">{copy.intro.emphasis}</span></p>
       </div>
-      <div className={cn("absolute left-[62%] top-28 flex max-w-56 origin-bottom-left items-start gap-2 text-sm text-muted-foreground transition-all duration-500", noteRevealed ? "opacity-100" : "animate-reveal [animation-delay:2.2s]")}>
-        <svg aria-hidden="true" viewBox="0 0 40 30" className="mt-1 h-6 w-8 shrink-0"><path d="M38 4 C24 6 12 14 4 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><path d="M4 24 L13 22 M4 24 L7 15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-        <span>{copy.intro.note}</span>
+      <div className="absolute left-[62%] top-28 flex max-w-56 origin-bottom-left items-start gap-2 text-sm text-muted-foreground">
+        <IntroNote text={copy.intro.note} arrowClassName="mt-1 h-6 w-8 shrink-0" />
       </div>
-      <div className={cn("absolute bottom-8 right-8 hidden text-right transition-all delay-150 duration-700 sm:block", contentRevealed ? "opacity-100" : "animate-reveal [animation-delay:2.35s]")}>
-        <p className="mb-4 text-sm">{copy.intro.welcome}</p>
-        <SiteButton asChild variant="paper" className="mr-2"><a href="#work">{copy.intro.work}</a></SiteButton>
-        <SiteButton asChild variant="ink"><a href="#hi" data-cursor={copy.intro.talkCursor}>{copy.intro.talk}</a></SiteButton>
+      <div className={cn("absolute bottom-8 right-8 hidden text-right transition-all delay-150 duration-700 sm:block", typed ? "animate-reveal [animation-delay:1.7s]" : "opacity-0")}>
+        <SiteButton asChild variant="glass" className="mr-2"><a href="#work">{copy.intro.work}</a></SiteButton>
+        <SiteButton asChild variant="glass"><a href="#hi">{copy.intro.talk}</a></SiteButton>
       </div>
     </div>
   );
@@ -62,9 +66,9 @@ export function TinkerScene() {
       </Note>
       <SceneObject src={art.laptop} alt="a laptop covered in stickers" label={copy.tinker.laptop} style={at(106, 19)} size="sm" delay="0s" />
       <SceneObject src={art.astronaut} alt="a rocket" label={copy.tinker.camera} style={at(104, 60)} size="sm" delay=".6s" />
-      <SceneObject src={art.cat} alt="a cat wearing sunglasses" label={copy.tinker.cat} style={at(124, 68)} size="sm" delay="1.2s" />
+      <SceneObject src={art.movies} alt="a clapperboard" label={copy.tinker.movies} style={at(124, 68)} size="sm" delay="1.2s" />
       <SceneObject src={art.keys} alt="a keyboard" label={copy.tinker.keys} style={at(136, 18)} size="sm" delay=".3s" />
-      <SceneObject src={art.badminton} alt="a game controller" label={copy.tinker.badminton} style={at(150, 68)} size="sm" delay="1.5s" />
+      <SceneObject src={art.nature} alt="pine trees on a hill" label={copy.tinker.nature} style={at(150, 68)} size="sm" delay="1.5s" />
     </div>
   );
 }
@@ -212,7 +216,7 @@ export function FinaleScene({ onWork }: { onWork: () => void }) {
         <h2 className="mt-3 font-story text-6xl">{copy.finale.title}</h2>
       </Note>
       <div className="absolute -translate-y-1/2" style={at(BUTTON_X, BUTTON_Y)}>
-        <SiteButton variant="ink" onClick={onWork} data-cursor={copy.finale.buttonCursor}>{copy.finale.button} <ArrowDown className="ml-2 h-4 w-4" /></SiteButton>
+        <SiteButton variant="glassDark" onClick={onWork} data-cursor={copy.finale.buttonCursor}>{copy.finale.button} <ArrowDown className="ml-2 h-4 w-4" /></SiteButton>
       </div>
     </>
   );

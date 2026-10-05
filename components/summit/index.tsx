@@ -1,17 +1,20 @@
 "use client";
 
-import { copy, summitLinks, summitName } from "@/data/summit";
+import { copy, siteHandle, summitLinks } from "@/data/summit";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { say } from "./bubbles";
 import { CuriousCursor, PhoneComment } from "./cursor-bubble";
 import { Altimeter } from "./altimeter";
 import { Closing } from "./ending";
 import { PrayerFlags } from "./prayer-flags";
+import { useIntroTyped } from "./intro-state";
+import { MenuIsland, type MenuItem } from "./menu-island";
 import { MobileStory } from "./mobile";
 import { RANGE_LAYERS, RangeBackdrop } from "./range-backdrop";
 import { FinaleScene, HabitScene, HeartScene, IntroScene, TimelineScene, TinkerScene } from "./scenes";
 import { Showcase } from "./showcase";
+import { SiteButton } from "./site-button";
 import { REVEAL_INSET, SCROLL_EASE, StringLine, TIP_SCREEN_ANCHOR } from "./string-line";
 import { CANVAS_TRAVEL_VW, CANVAS_VW } from "./thread";
 
@@ -22,7 +25,10 @@ export default function SummitHome() {
   const listeners = useRef(new Set<(progress: number) => void>());
   const [noteRevealed, setNoteRevealed] = useState(false);
   const [scrollReady, setScrollReady] = useState(false);
+  const typed = useIntroTyped();
   const [menuOpen, setMenuOpen] = useState(false);
+  // The header slips away while you scroll down and returns as soon as you scroll up.
+  const [headerHidden, setHeaderHidden] = useState(false);
   // The header floats over the story, but gets the page colour from the work
   // section on, so the links don't sit on top of project images.
   const [solidHeader, setSolidHeader] = useState(false);
@@ -67,8 +73,8 @@ export default function SummitHome() {
       window.clearTimeout(unlockTimer);
       skipEvents.forEach((name) => window.removeEventListener(name, unlock));
     };
-    const noteTimer = window.setTimeout(() => setNoteRevealed(true), 2200);
-    const unlockTimer = window.setTimeout(unlock, 2600);
+    const noteTimer = window.setTimeout(() => setNoteRevealed(true), 1800);
+    const unlockTimer = window.setTimeout(unlock, 2000);
     // Anyone who tries to scroll early skips the rest of the intro.
     const skipEvents = ["wheel", "touchmove", "keydown"] as const;
     skipEvents.forEach((name) => window.addEventListener(name, unlock, { passive: true }));
@@ -134,6 +140,40 @@ export default function SummitHome() {
     };
   };
 
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 6) return;
+      setHeaderHidden(y > last && y > 80);
+      last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Header pieces blur into focus one after another. The delay base comes from
+  // the header's --base variable: right away on phones, with the title block
+  // (after the greeting is typed) on desktop.
+  const headerIn = (index?: number) => ({
+    className: cn("max-md:animate-blur-reveal", typed ? "md:animate-blur-reveal" : "md:opacity-0"),
+    style: { animationDelay: `calc(var(--base) + ${(index ?? 0) * 90}ms)` } as CSSProperties,
+  });
+
+  const menuItems: MenuItem[] = [
+    { label: "trail", id: "brain" },
+    { label: "work", id: "work" },
+    { label: "linkedin", href: summitLinks.linkedin },
+    { label: "let's talk", id: "hi" },
+  ];
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (event: KeyboardEvent) => event.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [menuOpen]);
+
   const go = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMenuOpen(false);
@@ -141,29 +181,37 @@ export default function SummitHome() {
 
   return (
     <main>
-      <header className={cn("fixed inset-x-0 top-0 z-50 grid grid-cols-[minmax(0,1fr)_auto] items-center px-5 py-5 transition-opacity duration-700 sm:px-8 sm:py-7", solidHeader ? "bg-background" : "bg-transparent", scrollReady ? "opacity-100" : "pointer-events-none animate-reveal [animation-delay:2.6s]")}>
-        <button aria-label="Back to introduction" onClick={() => go("brain")} className="w-fit bg-transparent font-story text-3xl font-medium">
-          {summitName}
-        </button>
-        <nav className="hidden items-center gap-7 text-sm font-medium md:flex" aria-label="Main navigation">
-          <button onClick={() => go("brain")} className="bg-transparent">trail</button>
-          <button onClick={() => go("work")} className="bg-transparent">work</button>
-          <a href={summitLinks.linkedin} target="_blank" rel="noreferrer" className="story-link" data-cursor="the professional version.">linkedin</a>
-          <button onClick={() => go("hi")} className="bg-transparent" data-cursor="say hello?">let's talk</button>
-        </nav>
-        <button className="relative h-10 w-10 md:hidden" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen((open) => !open)}>
-          <span className={cn("absolute left-1/2 top-1/2 h-[2px] w-7 -translate-x-1/2 rounded-full bg-foreground transition-all duration-300", menuOpen ? "rotate-45" : "-translate-y-[5px]")} />
-          <span className={cn("absolute left-1/2 top-1/2 h-[2px] w-7 -translate-x-1/2 rounded-full bg-foreground transition-all duration-300", menuOpen ? "-rotate-45" : "translate-y-[4px]")} />
-        </button>
-        {menuOpen && (
-          <nav className="absolute inset-x-4 top-16 grid gap-1 border border-border bg-background p-3 text-lg shadow-xl md:hidden">
-            <button onClick={() => go("brain")} className="p-3 text-left">trail</button>
-            <button onClick={() => go("work")} className="p-3 text-left">work</button>
-            <a href={summitLinks.linkedin} target="_blank" rel="noreferrer" className="p-3">linkedin</a>
-            <button onClick={() => go("hi")} className="p-3 text-left">let's talk</button>
-          </nav>
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-50 grid grid-cols-[minmax(0,1fr)_auto] items-center px-5 py-5 transition-[translate] duration-500 [--base:.1s] [transition-timing-function:cubic-bezier(0.22,0.7,0.2,1)] sm:px-8 sm:py-7 md:[--base:1.3s]",
+          headerHidden && !menuOpen ? "-translate-y-full" : "translate-y-0",
         )}
+      >
+        {/* A frosted veil: strongest at the very top, fading to nothing below the header. */}
+        <div
+          aria-hidden="true"
+          className={cn("max-md:animate-fade-in", typed ? "md:animate-fade-in" : "md:opacity-0", "pointer-events-none absolute inset-x-0 top-0 -z-10 h-[150%] bg-gradient-to-b to-transparent backdrop-blur-md transition-colors duration-500 [mask-image:linear-gradient(to_bottom,black_35%,transparent)]", solidHeader ? "from-background/95 via-background/70" : "from-background/80 via-background/40")}
+          style={{ animationDelay: "var(--base)" }}
+        />
+        <button aria-label="Back to introduction" onClick={() => go("brain")} className={cn(headerIn(0).className, "w-fit bg-transparent font-story text-3xl font-medium")} style={headerIn(0).style}>
+          {siteHandle}
+        </button>
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+          <SiteButton variant="link" onClick={() => go("brain")} className={headerIn(1).className} style={headerIn(1).style}>trail</SiteButton>
+          <SiteButton variant="link" onClick={() => go("work")} className={headerIn(2).className} style={headerIn(2).style}>work</SiteButton>
+          <SiteButton asChild variant="link" className={headerIn(3).className} style={headerIn(3).style}>
+            <a href={summitLinks.linkedin} target="_blank" rel="noreferrer" data-cursor="the professional version.">linkedin</a>
+          </SiteButton>
+          <SiteButton variant="link" onClick={() => go("hi")} className={headerIn(4).className} style={headerIn(4).style}>let's talk</SiteButton>
+        </nav>
+        <MenuIsland revealClass={headerIn(1).className} revealStyle={headerIn(1).style} open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} onGo={go} items={menuItems} />
       </header>
+
+      <div
+        aria-hidden="true"
+        onClick={() => setMenuOpen(false)}
+        className={cn("fixed inset-0 z-40 bg-black/15 transition-opacity duration-500 md:hidden", menuOpen ? "opacity-100" : "pointer-events-none opacity-0")}
+      />
 
       <section id="brain" ref={storyRef} className="relative md:h-[720vh]">
         <div className="sticky top-0 hidden h-screen overflow-hidden md:block">
@@ -172,8 +220,8 @@ export default function SummitHome() {
           <div ref={canvasRef} className="relative h-full will-change-transform max-md:hidden" style={{ width: `${CANVAS_VW}vw` }}>
             <StringLine subscribe={subscribe} />
             <PrayerFlags />
-            <div className="absolute inset-0 z-10">
-              <IntroScene contentRevealed={noteRevealed} noteRevealed={noteRevealed} />
+            <div className="halo absolute inset-0 z-10">
+              <IntroScene contentRevealed={noteRevealed} />
               <TinkerScene />
               <HeartScene />
               <TimelineScene />
