@@ -11,6 +11,75 @@
   --font-playful: "var(--font-playful)", sans-serif;
 }
 
+@theme inline {
+  --font-display: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+}
+
+/* Homepage palette, updated from the visitor's clock (see time-palette-sync).
+   Accents come from Nepali prayer flags. */
+:root {
+  --paper: #f5f5f2;
+  --ink: #111111;
+}
+
+/* Thread section: content fades in once the pen has drawn past it. */
+.journey [data-shown] {
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.journey [data-shown="false"] {
+  opacity: 0;
+  filter: blur(6px);
+}
+
+/* Packing list lines stay visible; only the checkbox ticks when reached. */
+.journey .packing-item[data-shown] {
+  opacity: 1;
+  filter: none;
+}
+
+.packing-box {
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+}
+
+.packing-box svg {
+  transition:
+    opacity 0.3s,
+    scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.packing-item[data-shown="true"] .packing-box {
+  background-color: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.packing-item[data-shown="false"] .packing-box svg {
+  opacity: 0;
+  scale: 0.3;
+}
+
+@keyframes topo-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.topo-contour {
+  animation: topo-in 0.9s ease-out backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topo-contour {
+    animation: none;
+  }
+}
+
 html.lenis,
 html.lenis body {
   height: auto;
