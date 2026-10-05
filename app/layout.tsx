@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import {
   Inter,
+  Caveat,
   JetBrains_Mono,
   Manrope,
   Newsreader,
@@ -29,6 +30,12 @@ const fontDisplay = Newsreader({
   subsets: ["latin"],
   style: ["normal", "italic"],
   variable: "--font-display-face",
+  display: "swap",
+});
+
+const fontHand = Caveat({
+  subsets: ["latin"],
+  variable: "--font-hand-face",
   display: "swap",
 });
 
@@ -58,6 +65,7 @@ export default function RootLayout({
           ${fontManrope.variable}
           ${fontDisplay.variable}
           ${fontMono.variable}
+          ${fontHand.variable}
           antialiased`}
       >
         <SmoothScroll />

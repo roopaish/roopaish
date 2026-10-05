@@ -1,5 +1,5 @@
 import { profile } from "@/data/profile";
-import { projects as allProjects, type ProductLaunchedItem } from "@/data/projects";
+import { projects as allProjects, type ProductFeature, type ProductLaunchedItem } from "@/data/projects";
 
 // Everything the home page says and shows: a scroll story told as a Himalayan
 // trek. Every word and picture here is a stand-in.
@@ -100,10 +100,13 @@ export const copy = {
     more: "Still Interested?",
     moreCursor: "there's more on the shelf.",
     shelfTitle: "the whole shelf",
-    shelfHint: "pull one out, then open it up.",
+    shelfNote: ["some of the", "things i've built"],
+    otherTagline: "Tools, experiments & more",
+    otherCard: "Stack",
     shelfClose: "Close the shelf",
     shelfBack: "back to the shelf",
     shelfOpen: "Open in new tab",
+    shelfCode: "View Code",
   },
   closing: {
     greetingDeva: "धन्यवाद",
@@ -119,6 +122,10 @@ export const copy = {
 export type SummitProject = {
   number: string;
   title: string;
+  /** The name as it reads on the shelf plaque. */
+  shortTitle: string;
+  /** The colour of the monogram on the shelf card. */
+  accent: string;
   image: string;
   /** Every screenshot, the first being the cover. */
   images: string[];
@@ -126,6 +133,8 @@ export type SummitProject = {
   blurb: string;
   live?: string;
   code?: string;
+  /** What it does, one line each, shown beside the open case. */
+  features?: ProductFeature[];
 };
 
 const isReal = (url: string) => url !== "#";
@@ -137,13 +146,28 @@ const summitTags = (project: ProductLaunchedItem) => {
   return tags;
 };
 
+// How each project reads on the shelf, keyed by its name in data/projects.ts.
+const shelfLabels: Record<string, { shortTitle: string; accent: string }> = {
+  Biggya: { shortTitle: "Biggya", accent: "#e5484d" },
+  Ekagajpatra: { shortTitle: "Ekagajpatra", accent: "#3e7bfa" },
+  "Clamphook Mobile App": { shortTitle: "Clamphook", accent: "#2f9bff" },
+  "Production Ready Ecommerce": { shortTitle: "Ecommerce", accent: "#8b6cf0" },
+  "Real-Estate Platform": { shortTitle: "Real-Estate", accent: "#2fb47c" },
+  Aagaman: { shortTitle: "Aagaman", accent: "#f08a24" },
+  Menzz: { shortTitle: "Menzz", accent: "#d9d4cc" },
+};
+
 const toSummitProject = (project: ProductLaunchedItem, index: number): SummitProject => ({
   number: String(index + 1).padStart(2, "0"),
   title: project.name,
+  shortTitle: shelfLabels[project.name]?.shortTitle ?? project.name,
+  accent: shelfLabels[project.name]?.accent ?? "#d9d4cc",
   image: project.image,
   images: project.images.length ? project.images : [project.image],
   tags: summitTags(project),
   blurb: project.description,
+  features: project.features,
+  code: project.code,
   live: project.links.find((l) => isReal(l.url) && !l.comingSoon)?.url,
 });
 
