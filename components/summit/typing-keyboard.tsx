@@ -98,8 +98,8 @@ export function TypingKeyboard({ className, message, startDelay = 450 }: { class
         </div>
       )}
       <div className="flex flex-col gap-[1.6%]">
-        {ROWS.map((row) => (
-          <div key={row.keys} className="kb-row" style={{ "--indent": row.indent } as CSSProperties}>
+        {ROWS.map((row, rowIndex) => (
+          <div key={row.keys} className="kb-row" style={{ "--indent": row.indent, "--row": rowIndex } as CSSProperties}>
             {[...row.keys].map((letter) => (
               <span key={letter} className="kb-key" data-down={down === letter || held.has(letter)}>
                 {letter}
@@ -107,7 +107,7 @@ export function TypingKeyboard({ className, message, startDelay = 450 }: { class
             ))}
           </div>
         ))}
-        <div className="kb-row" style={{ "--indent": 3 } as CSSProperties}>
+        <div className="kb-row" style={{ "--indent": 3, "--row": ROWS.length } as CSSProperties}>
           <span className="kb-key kb-space" data-down={down === " " || held.has(" ")} />
         </div>
       </div>

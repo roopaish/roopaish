@@ -34,22 +34,22 @@ export const art = {
 };
 
 export const copy = {
-  greeting: "scroll down. follow the cable.",
   intro: {
     typed: `hey there, ${summitName.toLowerCase()} here.`,
     top: "the",
     emphasis: "full stack developer.",
+    mobileEmphasis: ["full stack", "developer."],
     note: "it all starts at a keyboard.",
     work: "view work",
     talk: "let's talk",
   },
   tinker: {
     say: "careful. side trails ahead.",
-    lead: "i wander off the main trail a lot.",
-    title: "a jack of all stacks",
-    sub: "a polite way to say i can't stop starting new projects.",
-    laptop: "this is where most things begin.",
-    camera: "side projects, launched on weekends.",
+    lead: "i'm curious about a lot.",
+    title: "so many things i'm into.",
+    sub: "coding, building and launching things, binging movies and series, and wandering out on nature walks.",
+    laptop: "coding. where most things begin.",
+    camera: "building and launching, mostly on weekends.",
     movies: "movies and series. one more episode. always.",
     keys: "one more feature. just one.",
     nature: "the best debugging happens on a nature walk.",
@@ -66,13 +66,8 @@ export const copy = {
   },
   timeline: {
     say: "the short version. very short.",
-    openingTop: "somehow,",
-    openingBottom: "i keep ending up...",
-    closingMuted: "taking",
-    closingMain: "ownership.",
-    closingMobileMuted: "...taking",
-    summaryTop: "most things i got curious about, i ended up building.",
-    summaryBottom: "most things i built, i ended up looking after.",
+    summaryTop: "when something sparks my curiosity, i dive in: read up, binge it, explore.",
+    summaryBottom: "then i put it to work, switch to it, and you can see it in how i build.",
     // TODO: your real years and stories.
     stops: [
       { year: "2019", title: "where it started.", line: "software engineering in Kathmandu, Nepal." },
@@ -84,9 +79,8 @@ export const copy = {
     ],
   },
   habit: {
-    say: "yes, it's a loop. i'm aware.",
     title: "apparently,",
-    titleMuted: "i don't know how to leave things alone.",
+    titleMuted: "i just love building things.",
     steps: ["spot the problem.", "sketch the route.", "build it.", "tie a flag."] as const,
     repeat: "repeat.",
   },
@@ -102,8 +96,14 @@ export const copy = {
     heading: "WORKS",
     title: ["places i've", "planted a flag."],
     blurb: "web and mobile products, built end to end.",
-    filterLabel: "show me",
     empty: "That shelf is being rearranged. Try another filter.",
+    more: "Still Interested?",
+    moreCursor: "there's more on the shelf.",
+    shelfTitle: "the whole shelf",
+    shelfHint: "pull one out, then open it up.",
+    shelfClose: "Close the shelf",
+    shelfBack: "back to the shelf",
+    shelfOpen: "Open in new tab",
   },
   closing: {
     greetingDeva: "धन्यवाद",

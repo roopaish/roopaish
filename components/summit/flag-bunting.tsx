@@ -117,7 +117,6 @@ export function FlagBunting({ className }: { className?: string }) {
             <span
               key={i}
               data-flag
-              data-cursor="give it a tug"
               onClick={() => flap(i)}
               className="block shrink-0 cursor-pointer will-change-transform"
               style={{ width: FLAG_W, height: FLAG_H, transformOrigin: "50% 0" }}

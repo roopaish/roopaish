@@ -3,12 +3,9 @@
 import { flagColors } from "@/data/journey";
 import { getThreadSamples } from "./thread";
 
-// Stretches of the trail that are smooth enough to hang flags from (canvas vw).
-// The tangle, the tinker loops, the climber's stretch and the habit loop are skipped.
-const STRETCHES: [from: number, to: number][] = [
-  [202, 460],
-  [492, 530],
-];
+// Flags hang only on the last stretch of the trail, the run after the habit
+// loop into "let's look at the flags i planted" (canvas vw).
+const STRETCHES: [from: number, to: number][] = [[492, 530]];
 const SPACING = 4.6;
 
 type Flag = { x: number; y: number; color: string; delay: number };
@@ -47,7 +44,7 @@ export function PrayerFlags() {
           className="prayer-flag absolute -translate-x-1/2"
           data-at={flag.x}
           data-mode="thread"
-          style={{ left: `${flag.x}vw`, top: `calc(${flag.y}vh + 1px)`, "--flag-delay": `${(index % 5) * 0.04}s`, "--flag-sway": `-${flag.delay}s` } as React.CSSProperties}
+          style={{ left: `${flag.x}vw`, top: `calc(${flag.y}cqh + 1px)`, "--flag-delay": `${(index % 5) * 0.04}s`, "--flag-sway": `-${flag.delay}s` } as React.CSSProperties}
         >
           <span style={{ background: flag.color, boxShadow: "inset 0 0 0 1px rgb(0 0 0 / 0.18)" }} />
         </div>

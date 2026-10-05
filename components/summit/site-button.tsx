@@ -7,7 +7,7 @@ import { useEffect, useRef, type ButtonHTMLAttributes } from "react";
 import { addMagnet } from "./magnet";
 
 const siteButton = cva(
-  "inline-flex h-12 items-center justify-center border px-7 [text-shadow:none] text-sm font-medium transition-[background-color,color,transform] duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-foreground/40 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex h-12 items-center justify-center border px-7 text-sm font-medium transition-[background-color,color,transform] duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-foreground/40 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -19,7 +19,7 @@ const siteButton = cva(
         glassDark: "glass-button glass-dark rounded-full px-8",
         // Plain text buttons: header links, and the quiet back-to-top.
         link: "h-auto border-transparent bg-transparent px-0 text-foreground",
-        quiet: "h-auto border-transparent bg-transparent px-0 text-xs font-normal text-muted-foreground/70 hover:text-foreground",
+        quiet: "h-auto border-transparent bg-transparent px-0 text-xs font-normal text-foreground",
         // A sewn-on shirt button (the glyph inside is drawn by the caller).
         shirt: "size-14 rounded-full border-0 bg-transparent p-0 text-foreground shadow-[0_3px_0_rgb(0_0_0/0.35),0_8px_12px_rgb(0_0_0/0.4)] transition-[rotate] duration-300 hover:rotate-[24deg]",
         // A paper cut-out arrow (the shape is drawn by the caller).

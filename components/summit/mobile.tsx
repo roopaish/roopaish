@@ -17,6 +17,7 @@ import {
 import { SiteButton } from "./site-button";
 import { IntroNote } from "./intro-note";
 import { TYPING_START_MS } from "./timing";
+import { SkyBody } from "./sky-body";
 import { TypingKeyboard } from "./typing-keyboard";
 
 // ---------------------------------------------------------------------------
@@ -142,7 +143,7 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
   }, []);
 
   return (
-    <div ref={rootRef} className="halo relative overflow-hidden md:hidden">
+    <div ref={rootRef} className="relative overflow-hidden md:hidden">
       {geo && (
         <svg aria-hidden="true" className={cn("pointer-events-none absolute left-0 top-0 transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")} width={geo.w} height={geo.h} viewBox={`0 0 ${geo.w} ${geo.h}`}>
           <path ref={pathRef} d={geo.d} pathLength="1" strokeDasharray="1" style={{ strokeDashoffset: 1 }} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -152,16 +153,17 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
 
       {/* the making of a full stack developer */}
       <div className="relative h-[132svh]">
+        <SkyBody className="absolute left-6 top-[15svh] z-10 size-12" />
         <div className={cn("absolute inset-x-0 top-[36svh] flex justify-center", ready ? "opacity-100" : "animate-reveal [animation-delay:.25s]")}>
           <div className="relative w-[78%]">
             <TypingKeyboard message={copy.intro.typed} startDelay={TYPING_START_MS} />
             <span ref={keyboardRef} className="absolute left-1/2 top-0" />
           </div>
         </div>
-        <div className="absolute right-5 top-[17svh] flex w-44 items-start gap-1.5 text-[0.8rem] leading-snug text-muted-foreground">
+        <div className="absolute right-5 top-[17svh] flex w-44 items-start gap-1.5 text-[0.8rem] leading-snug text-foreground">
           <IntroNote text={copy.intro.note} arrowClassName="mt-4 h-5 w-7 shrink-0" />
         </div>
-        <p className={cn("absolute left-5 top-[72svh] text-[2.6rem] font-semibold leading-[0.95]", ready ? "opacity-100" : "animate-reveal [animation-delay:0s]")}>{copy.intro.top}<br /><span className="font-story italic">{copy.intro.emphasis}</span></p>
+        <p className={cn("absolute left-5 top-[72svh] text-[2.6rem] font-semibold leading-[0.95]", ready ? "opacity-100" : "animate-reveal [animation-delay:0s]")}>{copy.intro.top}<br /><span className="font-story italic">{copy.intro.mobileEmphasis[0]}<br />{copy.intro.mobileEmphasis[1]}</span></p>
         <Anchor x="70%" y="29svh" />
         <Anchor x="94%" y="40svh" />
         <Anchor x="90%" y="70svh" />
@@ -175,9 +177,9 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         <MobileObject src={art.keys} alt="a keyboard" label={copy.tinker.keys} style={{ right: "5%", top: 190 }} delay=".4s" />
         <Anchor x="95%" y={400} />
         <div className="reveal absolute inset-x-0 top-[420px] mx-auto max-w-[17rem] text-center">
-          <p className="text-muted-foreground">{copy.tinker.lead}</p>
+          <p className="text-foreground">{copy.tinker.lead}</p>
           <h2 className="mt-1 whitespace-nowrap font-story text-[2.1rem] leading-tight">{copy.tinker.title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{copy.tinker.sub}</p>
+          <p className="mt-1 text-sm text-foreground">{copy.tinker.sub}</p>
         </div>
         <Anchor x="95%" y={590} />
         <MobileObject src={art.astronaut} alt="a rocket" label={copy.tinker.camera} style={{ left: "4%", top: 630 }} delay=".8s" />
@@ -200,7 +202,7 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
                 <span data-anchor className="absolute left-1/2 top-1/2" />
               </div>
               <p className="font-story text-2xl leading-tight">{h.title}</p>
-              <p className="mt-1 text-sm leading-snug text-muted-foreground">{h.body}</p>
+              <p className="mt-1 text-sm leading-snug text-foreground">{h.body}</p>
               {/* leave along the outer edge, below the words */}
               <Anchor x={right ? "calc(100% + 0.25rem)" : "-0.25rem"} y="calc(100% + 0.75rem)" />
             </div>
@@ -208,19 +210,18 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         })}
       </div>
 
-      {/* somehow, i keep ending up... — the years hang off the thread */}
+      {/* the years hang off the thread */}
       <div className="relative mt-20 px-5">
         <span data-say={copy.timeline.say} className="absolute left-0 top-20 h-px w-px" />
         <Anchor x="6%" y={-20} />
-        <p className="reveal mx-auto max-w-[18rem] text-center font-story text-[2rem] leading-tight">{copy.timeline.openingTop}<br /><span className="text-muted-foreground">{copy.timeline.openingBottom}</span></p>
-        <ol className="relative mt-10 pl-9">
+        <ol className="relative mt-4 pl-9">
           {timeline.map((stop) => (
             <li key={stop.year + stop.title} className="reveal relative pb-7">
               <span data-anchor className="absolute -left-[1.1rem] top-[0.7rem]" />
               <span aria-hidden="true" className="absolute -left-[1.1rem] top-[0.7rem] h-px w-3 bg-muted-foreground/60" />
               <span aria-hidden="true" className="absolute left-[-0.4rem] top-[0.55rem] h-1.5 w-1.5 rounded-full bg-muted-foreground" />
               <p>{stop.title}</p>
-              <p className="text-sm leading-snug text-muted-foreground">{stop.line}</p>
+              <p className="text-sm leading-snug text-foreground">{stop.line}</p>
               <p className="mt-0.5 text-xs text-muted-foreground/80">{stop.year}</p>
             </li>
           ))}
@@ -228,10 +229,9 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         <Anchor x="6%" y="100%" />
       </div>
       <div className="relative px-5 pt-4">
-        <p className="reveal text-center font-story text-[2rem]"><span className="text-muted-foreground">{copy.timeline.closingMobileMuted}</span> {copy.timeline.closingMain}</p>
-        <div className="reveal mx-auto mt-3 max-w-[19rem] text-center text-sm leading-snug">
+        <div className="reveal mx-auto max-w-[19rem] text-center text-sm leading-snug">
           <p>{copy.timeline.summaryTop}</p>
-          <p className="text-muted-foreground">{copy.timeline.summaryBottom}</p>
+          <p className="text-foreground">{copy.timeline.summaryBottom}</p>
         </div>
         <Anchor x="5%" y="calc(100% + 1rem)" />
       </div>
@@ -240,9 +240,8 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
       <div className="relative mt-16 px-5">
         <Anchor x="89%" y={-24} />
         <Anchor x="90%" y={150} />
-        <p className="reveal font-story text-[2.3rem] leading-[1.05]">{copy.habit.title} <span className="text-muted-foreground">{copy.habit.titleMuted}</span></p>
+        <p className="reveal font-story text-[2.3rem] leading-[1.05]">{copy.habit.title} <span className="text-foreground">{copy.habit.titleMuted}</span></p>
         <div className="reveal relative mt-4 h-[270px]">
-          <span data-say={copy.habit.say} className="absolute left-0 top-1/2 h-px w-px" />
           <Anchor x="86%" y={205} />
           <Anchor x="50%" y={230} loop={MOBILE_LOOP} />
           <span className="absolute -translate-x-1/2 translate-y-3 whitespace-nowrap text-sm" style={{ left: "50%", top: 230 }}>{copy.habit.steps[0]}</span>
@@ -257,7 +256,7 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
       <div className="relative px-5 pb-24 pt-14 text-center">
         <span data-say={copy.finale.say} className="absolute left-0 top-10 h-px w-px" />
         <Anchor x="94%" y={40} />
-        <p className="reveal text-sm text-muted-foreground">{copy.finale.lead}</p>
+        <p className="reveal text-sm text-foreground">{copy.finale.lead}</p>
         <h2 className="reveal mt-2 font-story text-[2.3rem] leading-tight">{copy.finale.mobileTitle[0]}<br />{copy.finale.mobileTitle[1]}</h2>
         <div className="relative mt-7 inline-block">
           <span data-anchor className="absolute left-[calc(100%+2.75rem)] top-[-0.25rem]" />

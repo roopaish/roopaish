@@ -228,7 +228,8 @@
 .wood-tile,
 .wood-board,
 .wood-drawer,
-.wood-chip {
+.wood-chip,
+.wood-plank {
   --wood:
     radial-gradient(ellipse 18% 9% at 72% 30%, rgb(90 52 20 / 0.28), transparent 70%),
     repeating-linear-gradient(94deg, rgb(70 38 12 / 0.1) 0 2px, transparent 2px 9px),
@@ -241,6 +242,15 @@
     inset 2px 0 0 rgb(255 244 214 / 0.25),
     0 7px 0 #8a5a28,
     0 14px 20px rgb(0 0 0 / 0.25);
+}
+
+/* A shelf plank the CD cases stand on. */
+.wood-plank {
+  border-radius: 3px;
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -2px 0 rgb(80 40 10 / 0.3),
+    0 5px 8px rgb(0 0 0 / 0.4);
 }
 
 /* A project card: wood all the way across, stickers stuck on top of it (the
@@ -439,6 +449,8 @@
 }
 
 .kb-row {
+  position: relative;
+  z-index: var(--row, 0);
   display: flex;
   gap: var(--g);
   width: 100%;
@@ -610,24 +622,6 @@
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
   }
-}
-
-/* A paper-coloured glow around every letter in the story, so the trail line
-   passes behind the words (like a map label) instead of cutting through them.
-   Text-shadow inherits, so this one class covers the whole scene. */
-.halo {
-  text-shadow:
-    0 0 2px var(--paper),
-    0 0 4px var(--paper),
-    0 0 6px var(--paper),
-    0 0 9px var(--paper),
-    0 0 13px var(--paper),
-    0 0 18px var(--paper);
-}
-
-.kb,
-.kb * {
-  text-shadow: none;
 }
 
 /* Header reveal: each piece blurs into focus and rises a little. "backwards"

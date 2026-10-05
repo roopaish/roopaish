@@ -315,7 +315,7 @@ export function AsciiCat({ className }: { className?: string }) {
   }, []);
 
   return (
-    <pre role="img" aria-label="a cat chewing on a laptop" className={`font-mono text-[8px] font-semibold leading-[1.1] text-muted-foreground sm:text-[9px] ${className ?? ""}`}>
+    <pre role="img" aria-label="a cat chewing on a laptop" className={`font-mono text-[8px] font-semibold leading-[1.1] text-foreground sm:text-[9px] ${className ?? ""}`}>
       {FRAMES_RUNS[frame]!.rows.map((runs, row) => (
         <Fragment key={row}>
           {row > 0 && "\n"}

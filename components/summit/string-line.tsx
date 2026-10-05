@@ -20,13 +20,11 @@ export function StringLine({ subscribe }: { subscribe: Subscribe }) {
   // The cable waits for the keyboard to finish typing its greeting.
   const typed = useIntroTyped();
   const pathRef = useRef<SVGPathElement>(null);
-  const tipRef = useRef<SVGCircleElement>(null);
 
   useEffect(() => {
     const path = pathRef.current;
-    const tip = tipRef.current;
-    if (!path || !tip) return;
-    const { xs, ys, lengths, total } = getThreadSamples();
+    if (!path) return;
+    const { xs, lengths, total } = getThreadSamples();
     const count = xs.length - 1;
 
     const draw = (progress: number) => {
@@ -41,9 +39,6 @@ export function StringLine({ subscribe }: { subscribe: Subscribe }) {
     const length = lengths[i] ?? total;
 
     path.style.strokeDashoffset = `${1 - length / total}`;
-    tip.setAttribute("cx", `${xs[i]}`);
-    tip.setAttribute("cy", `${ys[i]}`);
-    tip.style.opacity = length <= 0 || length >= total * 0.999 ? "0" : "1";
     };
     draw(0);
     return subscribe(draw);
@@ -54,7 +49,6 @@ export function StringLine({ subscribe }: { subscribe: Subscribe }) {
     <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox={`0 0 ${CANVAS_VW * 10} 1000`} preserveAspectRatio="none">
       <path ref={pathRef} pathLength="1" style={{ strokeDashoffset: 1 }} d={THREAD} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1" />
       <path className={typed ? "animate-draw-string" : undefined} style={{ strokeDashoffset: 1, animationDuration: `${CABLE_DRAW_MS}ms`, animationTimingFunction: "cubic-bezier(0.45, 0, 0.3, 1)" }} pathLength="1" strokeDasharray="1" d={CABLE} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <circle ref={tipRef} r="9" cx="569" cy="199" style={{ opacity: 0 }} fill="#c43a30" stroke="var(--paper)" strokeWidth="3" />
     </svg>
   );
 }

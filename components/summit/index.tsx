@@ -1,6 +1,6 @@
 "use client";
 
-import { copy, siteHandle, summitLinks } from "@/data/summit";
+import { siteHandle, summitLinks } from "@/data/summit";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { say } from "./bubbles";
@@ -12,11 +12,12 @@ import { useIntroTyped } from "./intro-state";
 import { MenuIsland, type MenuItem } from "./menu-island";
 import { MobileStory } from "./mobile";
 import { RANGE_LAYERS, RangeBackdrop } from "./range-backdrop";
+import { SkyBody } from "./sky-body";
 import { FinaleScene, HabitScene, HeartScene, IntroScene, TimelineScene, TinkerScene } from "./scenes";
 import { Showcase } from "./showcase";
 import { SiteButton } from "./site-button";
 import { REVEAL_INSET, SCROLL_EASE, StringLine, TIP_SCREEN_ANCHOR } from "./string-line";
-import { CANVAS_TRAVEL_VW, CANVAS_VW } from "./thread";
+import { BAND, BAND_MARGIN_VH, CANVAS_TRAVEL_VW, CANVAS_VW } from "./thread";
 
 export default function SummitHome() {
   const storyRef = useRef<HTMLElement>(null);
@@ -62,13 +63,10 @@ export default function SummitHome() {
     }
     root.style.overflow = "hidden";
     window.scrollTo(0, 0);
-    let greet = 0;
     const unlock = () => {
       root.style.overflow = "";
       setNoteRevealed(true);
       setScrollReady(true);
-      window.clearTimeout(greet);
-      greet = window.setTimeout(() => say("intro", copy.greeting), 1800);
       window.clearTimeout(noteTimer);
       window.clearTimeout(unlockTimer);
       skipEvents.forEach((name) => window.removeEventListener(name, unlock));
@@ -79,7 +77,6 @@ export default function SummitHome() {
     const skipEvents = ["wheel", "touchmove", "keydown"] as const;
     skipEvents.forEach((name) => window.addEventListener(name, unlock, { passive: true }));
     return () => {
-      window.clearTimeout(greet);
       window.clearTimeout(noteTimer);
       window.clearTimeout(unlockTimer);
       skipEvents.forEach((name) => window.removeEventListener(name, unlock));
@@ -131,6 +128,37 @@ export default function SummitHome() {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
+  }, []);
+
+  // Sideways scrolling: while the trail is on screen on desktop, a horizontal
+  // swipe or wheel (and the left / right arrow keys) moves along it, the same
+  // as scrolling down and up.
+  useEffect(() => {
+    const onStory = () => {
+      const section = storyRef.current;
+      if (!section || window.innerWidth < 768 || document.querySelector("[role='dialog']")) return false;
+      return window.scrollY >= section.offsetTop - 1 && window.scrollY <= section.offsetTop + section.offsetHeight - window.innerHeight + 1;
+    };
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || event.ctrlKey || !onStory()) return;
+      if (event.target instanceof Element && event.target.closest("[data-lenis-prevent]")) return;
+      event.preventDefault();
+      window.scrollBy({ top: event.deltaX, behavior: "instant" });
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !onStory()) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      event.preventDefault();
+      window.scrollBy({ top: (event.key === "ArrowRight" ? 1 : -1) * window.innerHeight * 0.5, behavior: "smooth" });
+    };
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const subscribe = (listen: (progress: number) => void) => {
@@ -215,12 +243,13 @@ export default function SummitHome() {
 
       <section id="brain" ref={storyRef} className="relative md:h-[720vh]">
         <div className="sticky top-0 hidden h-screen overflow-hidden md:block">
+          <SkyBody className="absolute right-[14vw] top-[14vh] z-10 size-14" />
           <RangeBackdrop layersRef={rangeLayers} />
           <Altimeter subscribe={subscribe} />
-          <div ref={canvasRef} className="relative h-full will-change-transform max-md:hidden" style={{ width: `${CANVAS_VW}vw` }}>
+          <div ref={canvasRef} className="relative will-change-transform max-md:hidden" style={{ width: `${CANVAS_VW}vw`, height: `${BAND * 100}vh`, marginTop: `${BAND_MARGIN_VH}vh`, containerType: "size" }}>
             <StringLine subscribe={subscribe} />
             <PrayerFlags />
-            <div className="halo absolute inset-0 z-10">
+            <div className="absolute inset-0 z-10">
               <IntroScene contentRevealed={noteRevealed} />
               <TinkerScene />
               <HeartScene />

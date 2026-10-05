@@ -20,6 +20,8 @@ const hash = (n: number) => {
 
 type Point = [x: number, y: number];
 
+const round = (n: number) => Math.round(n * 100) / 100;
+
 // Alternating crests and saddles across the layer. Heights are vh from the top.
 function skyline(width: number, [high, low]: readonly [number, number], step: number, seed: number): Point[] {
   const points: Point[] = [];
@@ -27,7 +29,8 @@ function skyline(width: number, [high, low]: readonly [number, number], step: nu
   for (let x = -step; x <= width + step; x += step * (0.7 + hash(seed + i) * 0.6)) {
     const crest = i % 2 === 0;
     const t = hash(seed * 7 + i * 3);
-    points.push([x, crest ? high + t * (low - high) * 0.5 : low - t * (low - high) * 0.25 + 8]);
+    // Rounded: Math.sin differs in its last digits between the server and the browser, which breaks hydration.
+    points.push([round(x), round(crest ? high + t * (low - high) * 0.5 : low - t * (low - high) * 0.25 + 8)]);
     i += 1;
   }
   return points;

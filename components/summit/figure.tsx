@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { quietOthers } from "./bubbles";
 
-export const figureSizes = { fill: "h-full w-full", sm: "h-36 w-36 lg:h-44 lg:w-44", md: "h-44 w-44 lg:h-56 lg:w-56", lg: "h-52 w-52 lg:h-64 lg:w-64" };
+export const figureSizes = { fill: "h-full w-full", sm: "h-28 w-28 lg:h-36 lg:w-36", md: "h-36 w-36 lg:h-44 lg:w-44", lg: "h-44 w-44 lg:h-52 lg:w-52" };
 
 // Each object keeps its own little confession. It types itself out on hover and
 // springs back into hiding the moment the cursor leaves. The object tilts toward
@@ -109,7 +109,7 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
             "pointer-events-none absolute z-40 w-max max-w-[min(16rem,calc(100vw-2rem))] whitespace-pre-line",
             align === "left" ? "left-0" : align === "right" ? "right-0" : "left-1/2 -translate-x-1/2",
             labelBelow ? "top-[calc(100%+4px)] rounded-[5px_18px_18px_18px]" : align === "right" ? "bottom-[calc(100%+4px)] rounded-[18px_18px_5px_18px]" : "bottom-[calc(100%+4px)] rounded-[18px_18px_18px_5px]",
-            " [text-shadow:none] border border-cursor-border bg-cursor px-4 py-2 text-sm text-cursor-foreground shadow-lg transition-all duration-300",
+            " border border-cursor-border bg-cursor px-4 py-2 text-sm text-cursor-foreground shadow-lg transition-all duration-300",
             hovered ? "translate-y-0 scale-100 opacity-100" : cn(labelBelow ? "-translate-y-3" : "translate-y-3", "scale-90 opacity-0"),
           )}
         >

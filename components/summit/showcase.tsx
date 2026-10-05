@@ -5,9 +5,16 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode, type RefObject } from "react";
 import { SiteButton } from "./site-button";
 import { WoodTiles } from "./wood-tiles";
+import { WorkShelf } from "./work-shelf";
+
+// How many projects sit on the page before the shelf.
+const SHOWN = 3;
 
 export function Showcase({ filter, setFilter }: { filter: string; setFilter: (filter: string) => void }) {
   const filtered = filter === "All" ? summitProjects : summitProjects.filter((project) => project.tags.includes(filter));
+  const shown = filtered.slice(0, SHOWN);
+  const shelved = filtered.slice(SHOWN);
+  const [shelfOpen, setShelfOpen] = useState(false);
   return (
     <section id="work" className="relative min-h-screen overflow-x-clip border-t border-foreground bg-background pb-24 sm:px-8">
       <div className="px-5 pb-10 pt-32 sm:px-0">
@@ -15,24 +22,31 @@ export function Showcase({ filter, setFilter }: { filter: string; setFilter: (fi
       </div>
       <div className="relative mx-auto mt-16 grid max-w-[1500px] gap-16 px-5 sm:px-0 lg:grid-cols-[minmax(280px,0.65fr)_minmax(0,1.35fr)]">
         <aside className="h-fit min-w-0 lg:sticky lg:top-28">
-          <h2 className="max-w-md font-story text-5xl leading-none sm:text-6xl">{copy.works.title[0]}<br /><em>{copy.works.title[1]}</em></h2>
-          <p className="mt-8 max-w-sm text-muted-foreground">{copy.works.blurb}</p>
-          <p className="mb-3 mt-10 text-sm">{copy.works.filterLabel}</p>
-          <div className="flex flex-wrap gap-2">
+          <h2 className="max-w-md font-story text-4xl leading-none sm:text-5xl">{copy.works.title[0]}<br /><em>{copy.works.title[1]}</em></h2>
+          <p className="mt-8 max-w-sm text-foreground">{copy.works.blurb}</p>
+          <div className="mt-10 flex flex-wrap gap-2">
             {projectFilters.map((item) => <SiteButton key={item} variant="filter" data-active={filter === item} onClick={() => setFilter(item)} data-cursor={`filter: ${item.toLowerCase()}`}>{item}</SiteButton>)}
           </div>
         </aside>
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-20 lg:gap-30">
-          {filtered.map((project) => (
+          {shown.map((project) => (
             <article key={project.title} className="group min-w-0">
               <ProjectShots project={project}>
                 <ProjectDrawer project={project} />
               </ProjectShots>
             </article>
           ))}
-          {filtered.length === 0 && <p className="py-24 text-muted-foreground">{copy.works.empty}</p>}
+          {filtered.length === 0 && <p className="py-24 text-foreground">{copy.works.empty}</p>}
+          {shelved.length > 0 && (
+            <div className="flex justify-center">
+              <SiteButton variant="glassDark" size="pill" className="min-w-64" onClick={() => setShelfOpen(true)} data-cursor={copy.works.moreCursor}>
+                {copy.works.more}
+              </SiteButton>
+            </div>
+          )}
         </div>
       </div>
+      <WorkShelf projects={summitProjects} open={shelfOpen} onClose={() => setShelfOpen(false)} />
     </section>
   );
 }
@@ -241,7 +255,7 @@ function ProjectDrawer({ project }: { project: SummitProject }) {
             <DrawerItem order={0} className="flex flex-wrap gap-x-3 gap-y-2 pt-2">
               {[project.number, ...project.tags].map((label, index) => <PaperTag key={label} tilt={index % 2 ? 1.8 : -2.2}>{label}</PaperTag>)}
             </DrawerItem>
-            <DrawerItem order={1}><h3 className="mt-2 font-story text-2xl md:text-4xl">{project.title}</h3></DrawerItem>
+            <DrawerItem order={1}><h3 className="mt-2 font-story text-2xl md:text-3xl">{project.title}</h3></DrawerItem>
             <DrawerItem order={2}><p className="mt-2 max-w-xl text-[#f6e9cf]/75">{project.blurb}</p></DrawerItem>
           </div>
           {project.live && (

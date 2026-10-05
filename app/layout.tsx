@@ -5,11 +5,11 @@ import SmoothScroll from "@/components/smooth-scroll";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import {
-  Bricolage_Grotesque,
   Ephesis,
   Inter,
   JetBrains_Mono,
   Manrope,
+  Newsreader,
 } from "next/font/google";
 import "simplebar-react/dist/simplebar.min.css";
 import "./globals.css";
@@ -26,8 +26,9 @@ const fontManrope = Manrope({
   display: "swap",
 });
 
-const fontDisplay = Bricolage_Grotesque({
+const fontDisplay = Newsreader({
   subsets: ["latin"],
+  style: ["normal", "italic"],
   variable: "--font-display-face",
   display: "swap",
 });

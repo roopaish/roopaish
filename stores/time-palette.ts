@@ -27,6 +27,8 @@ type TimePaletteStore = {
   overridden: boolean;
   setFromClock: (hour: number) => void;
   cycle: () => void;
+  /** Flip between the day and night looks (what the sun / moon does). */
+  toggleNight: () => void;
 };
 
 export const useTimePalette = create<TimePaletteStore>((set) => ({
@@ -36,6 +38,11 @@ export const useTimePalette = create<TimePaletteStore>((set) => ({
     set((state) =>
       state.overridden ? state : { palette: paletteForHour(hour) },
     ),
+  toggleNight: () =>
+    set((state) => ({
+      overridden: true,
+      palette: state.palette === "night" ? "day" : "night",
+    })),
   cycle: () =>
     set((state) => ({
       overridden: true,

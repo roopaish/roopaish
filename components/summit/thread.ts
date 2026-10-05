@@ -6,16 +6,28 @@
 export const CANVAS_VW = 570;
 export const CANVAS_TRAVEL_VW = 470;
 
-// Place something on the canvas by its vw/vh coordinates.
-export const at = (x: number, y: number) => ({ left: `${x}vw`, top: `${y}vh` });
+// The canvas is only BAND of the screen's height, centred, so the story reads
+// as a compact strip instead of using the whole screen. Heights on it are in
+// cqh (1% of the canvas's own height, which is how the canvas is a size
+// container), so they scale with it; widths stay in vw.
+export const BAND = 0.74;
+
+// The first screen is the exception: it keeps the full height of the screen,
+// so it sits in a full-viewport box (offset up by the band's margin) and the
+// keyboard is placed so the cable still leaves it from the right spot.
+export const BAND_MARGIN_VH = (1 - BAND) * 50;
+
+// Place something on the canvas by its vw/cqh coordinates.
+export const at = (x: number, y: number) => ({ left: `${x}vw`, top: `${y}cqh` });
 
 // A waypoint for the thread, in vw/vh. `loop` ties a little loop-de-loop at
 // that point (radius in vh; negative loops downward).
 export type Waypoint = [x: number, y: number, loop?: number];
 
-// Horizontal units are ~1.8x wider on screen than vertical ones, so loops are
-// narrowed to stay round rather than squashed.
-export const LOOP_ASPECT = 1.8;
+// Horizontal units are ~1.8x wider on screen than vertical ones (and the band
+// squeezes the vertical ones further), so loops are narrowed to stay round
+// rather than squashed.
+export const LOOP_ASPECT = 1.8 / BAND;
 
 // Where the thread finally ends: at the "see the work" button.
 export const BUTTON_X = 537;
