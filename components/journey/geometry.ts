@@ -1,10 +1,11 @@
 import {
-  BASE_ALTITUDE,
+  altitudeLines,
+  altitudeY,
   camps,
-  CONTOUR_INTERVAL,
   detour,
   flagLine,
-  peaks,
+  heroPeaks,
+  summit,
   track,
   trailWaypoints,
 } from "@/data/journey";
@@ -21,32 +22,57 @@ import {
 const SPACING = 16;
 /** How much slower the distant range moves than the trail. */
 export const FAR_RANGE_SPEED = 0.45;
+/** Hero layers move at these fractions of the scroll (far → near). */
+export const HERO_LAYER_SPEED = [0.25, 0.5];
 
-export type Contour = {
-  /** Points of the ring before the cursor bends it. */
-  base: Point[];
-  index: boolean;
-};
+type RangePeak = { x: number; height: number; width: number };
 
-export type TopoPeak = {
-  name: string;
-  center: Point;
-  spacing: number;
-  altitude: number;
-  contours: Contour[];
+/** Background ranges in the hero, as fractions of the viewport. */
+const heroLayers: { base: number; seed: number; peaks: RangePeak[] }[] = [
+  {
+    base: 0.5,
+    seed: 7,
+    peaks: [
+      { x: 0.15, height: 0.12, width: 0.15 },
+      { x: 0.38, height: 0.14, width: 0.14 },
+      { x: 0.55, height: 0.18, width: 0.12 },
+      { x: 0.72, height: 0.3, width: 0.16 },
+      { x: 0.88, height: 0.22, width: 0.12 },
+      { x: 1.05, height: 0.16, width: 0.14 },
+    ],
+  },
+  {
+    base: 0.6,
+    seed: 19,
+    peaks: [
+      { x: 0.1, height: 0.1, width: 0.12 },
+      { x: 0.3, height: 0.2, width: 0.16 },
+      { x: 0.5, height: 0.12, width: 0.12 },
+      { x: 0.64, height: 0.08, width: 0.1 },
+      { x: 0.85, height: 0.1, width: 0.14 },
+      { x: 1.05, height: 0.12, width: 0.14 },
+    ],
+  },
+];
+
+export type HeroLayer = {
+  d: string;
+  labels: { peak: (typeof heroPeaks)[number]; x: number; y: number }[];
 };
 
 export type JourneyGeometry = {
   size: TrackSize;
   width: number;
-  peaks: TopoPeak[];
-  /** Evenly spaced trail; points before `ridgeStart` are the map route. */
+  heroLayers: HeroLayer[];
+  /** Evenly spaced trail; points before `ridgeStart` are in the hero. */
   trail: Point[];
   ridgeStart: number;
   /** Non-decreasing x at which each trail point gets drawn. */
   revealX: number[];
-  /** Mountain body under the climb, starting just before base camp. */
-  ridgeFill: { d: string; startX: number };
+  /** Ground under the whole trail. */
+  mountain: string;
+  /** Dashed altitude lines behind the climb. */
+  altitudes: { altitude: number; y: number; x1: number; x2: number }[];
   detour: string;
   camps: Point[];
   /** Pole bases on the ridge and the tops the flag string is tied to. */
@@ -70,46 +96,39 @@ function computeRevealX(points: Point[]) {
   return reveal;
 }
 
-function buildPeak(peak: (typeof peaks)[number], size: TrackSize): TopoPeak {
-  const rand = mulberry32(peak.seed);
-  const center = { x: peak.x * size.u, y: peak.y * size.h };
-  const spacing = Math.min(size.u, size.h) * 0.032;
-  const waves = [2, 3, 5].map((frequency, i) => ({
-    frequency,
-    amplitude: [0.14, 0.08, 0.04][i],
-    phase: rand() * Math.PI * 2,
-  }));
+/** Ridge line made of overlapping triangular peaks plus a little jitter. */
+function buildHeroLayer(
+  layer: (typeof heroLayers)[number],
+  index: number,
+  size: TrackSize,
+): HeroLayer {
+  const { u, h } = size;
+  const rand = mulberry32(layer.seed);
+  const heightAt = (x: number) =>
+    layer.peaks.reduce((best, peak) => {
+      const t = 1 - Math.abs(x / u - peak.x) / peak.width;
+      return t > 0 ? Math.max(best, peak.height * t ** 1.15) : best;
+    }, 0);
 
-  const contours: Contour[] = [];
-  for (let k = 0; k < peak.rings; k++) {
-    const radius = spacing * (k + 0.7);
-    const count = Math.max(20, 12 + k * 5);
-    const base: Point[] = [];
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2;
-      // Rings share the same waves (shifting slowly outwards) so they nest
-      // like real contours instead of crossing each other.
-      const wobble = waves.reduce(
-        (sum, w) =>
-          sum +
-          w.amplitude * Math.sin(w.frequency * angle + w.phase + k * 0.12),
-        0,
-      );
-      const r = radius * (1 + wobble);
-      base.push({
-        x: center.x + Math.cos(angle) * r * 1.3,
-        y: center.y + Math.sin(angle) * r,
-      });
-    }
-    contours.push({ base, index: (peak.rings - k) % 5 === 0 });
+  const points: Point[] = [];
+  for (let x = -20; x <= u * 1.2; x += 10) {
+    const jitter = (rand() - 0.5) * 0.008;
+    points.push({ x, y: (layer.base - heightAt(x) + jitter) * h });
   }
+  const line = points
+    .map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join("");
+  const last = points[points.length - 1];
 
   return {
-    name: peak.name,
-    center,
-    spacing,
-    altitude: BASE_ALTITUDE + peak.rings * CONTOUR_INTERVAL,
-    contours,
+    d: `${line}L${last.x.toFixed(1)},${h}L${points[0].x.toFixed(1)},${h}Z`,
+    labels: heroPeaks
+      .filter((peak) => peak.layer === index)
+      .map((peak) => ({
+        peak,
+        x: peak.x * u,
+        y: (layer.base - heightAt(peak.x * u)) * h,
+      })),
   };
 }
 
@@ -144,24 +163,27 @@ export function buildGeometry(size: TrackSize): JourneyGeometry {
   let ridgeStart = trail.findIndex((p) => p.x >= u);
   if (ridgeStart < 0) ridgeStart = trail.length - 1;
 
-  const climbX = resolveX({ a: 1, b: 1.1 }, size);
-  const climb = trail.slice(Math.max(0, trail.findIndex((p) => p.x >= climbX)));
-  const last = climb[climb.length - 1];
-  const ridgeFill = {
-    d: `${smoothPath(climb)}L${last.x.toFixed(1)},${h}L${climb[0].x.toFixed(1)},${h}Z`,
-    startX: climb[0].x,
-  };
-
-  const farWidth = (width - u) * FAR_RANGE_SPEED + u;
+  const first = trail[0];
+  const last = trail[trail.length - 1];
+  const climbX = resolveX({ a: 1, b: 1.14 }, size);
+  const summitX = resolveX(summit.at, size);
 
   return {
     size,
     width,
-    peaks: peaks.map((peak) => buildPeak(peak, size)),
+    heroLayers: heroLayers.map((layer, index) =>
+      buildHeroLayer(layer, index, size),
+    ),
     trail,
     ridgeStart,
     revealX: computeRevealX(trail),
-    ridgeFill,
+    mountain: `M-20,${h}L-20,${first.y.toFixed(1)}${smoothPath(trail).replace(/^M/, "L")}L${last.x.toFixed(1)},${h}Z`,
+    altitudes: altitudeLines.map((altitude) => ({
+      altitude,
+      y: altitudeY(altitude) * h,
+      x1: climbX,
+      x2: summitX,
+    })),
     detour: smoothPath(
       resample(
         detour.map((p) => toPoint(p, size)),
@@ -179,18 +201,6 @@ export function buildGeometry(size: TrackSize): JourneyGeometry {
       const point = toPoint(base, size);
       return { base: point, top: { x: point.x, y: point.y - height * h } };
     }),
-    farRange: buildFarRange(size, farWidth),
+    farRange: buildFarRange(size, (width - u) * FAR_RANGE_SPEED + u),
   };
-}
-
-/** Altitude under a point on the map, from the nearest contour rings. */
-export function altitudeAt(point: Point, topo: TopoPeak[]) {
-  let best = BASE_ALTITUDE;
-  for (const peak of topo) {
-    const dx = (point.x - peak.center.x) / 1.3;
-    const dy = point.y - peak.center.y;
-    const rings = Math.hypot(dx, dy) / peak.spacing;
-    best = Math.max(best, peak.altitude - rings * CONTOUR_INTERVAL);
-  }
-  return Math.round(best / 10) * 10;
 }

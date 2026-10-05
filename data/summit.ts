@@ -1,0 +1,156 @@
+import { profile } from "@/data/profile";
+import { projects as allProjects, type ProductLaunchedItem } from "@/data/projects";
+
+// Everything the home page says and shows: a scroll story told as a Himalayan
+// trek. Every word and picture here is a stand-in.
+// TODO: rewrite the copy in your own voice and swap the placeholder art.
+
+const social = (platform: string) =>
+  profile.socials.find((s) => s.platform === platform)?.url ?? "#";
+
+export const summitName = profile.name;
+
+export const summitLinks = {
+  email: profile.email,
+  linkedin: social("LinkedIn"),
+  github: social("GitHub"),
+  x: social("X"),
+};
+
+/** Placeholder art. Every file lives in public/placeholder (see CREDITS.md). */
+export const art = {
+  laptop: "/placeholder/laptop.png",
+  camera: "/placeholder/phone.png",
+  cat: "/placeholder/cat.png",
+  keys: "/placeholder/keyboard.png",
+  badminton: "/placeholder/joystick.png",
+  globe: "/placeholder/globe.png",
+  brain: "/placeholder/bulb.png",
+  astronaut: "/placeholder/rocket.png",
+  robot: "/placeholder/robot.png",
+};
+
+export const copy = {
+  greeting: "scroll down. follow the cable.",
+  intro: {
+    namaste: "नमस्ते",
+    typed: `hey there, ${summitName.toLowerCase()} here.`,
+    top: "the",
+    middle: "making of a",
+    emphasis: "full stack developer.",
+    note: "it all starts at a keyboard.",
+    welcome: "or, namaste, and welcome to my portfolio :)",
+    work: "view work",
+    talk: "let's talk",
+    talkCursor: "i don't bite.",
+  },
+  tinker: {
+    say: "careful. side trails ahead.",
+    lead: "i wander off the main trail a lot.",
+    title: "a jack of all stacks",
+    sub: "a polite way to say i can't stop starting new projects.",
+    laptop: "this is where most things begin.",
+    camera: "side projects, launched on weekends.",
+    cat: "head of distraction. kathmandu street cat.",
+    keys: "one more feature. just one.",
+    badminton: "let's do a match?",
+    badmintonMobile: "competitive. occasionally.",
+  },
+  heart: {
+    say: "okay, the soft part.",
+    title: "but few things have my heart.",
+    mobileTitle: ["but few things", "have my heart."],
+    items: [
+      { key: "globe", alt: "a globe wrapped in orbits", x: 200, y: 56, title: "the web came first.", body: "browsers, then servers, then everything in between.", label: "yes, i'm still here." },
+      { key: "camera", alt: "a phone", x: 224, y: 22, title: "then mobile, in my pocket.", body: "same love for the craft, a much smaller screen.", label: "flutter, react native, repeat." },
+      { key: "brain", alt: "a lightbulb", x: 260, y: 60, title: "now, whole products.", body: "from the database to the app store.", label: "still figuring out the shortcuts." },
+    ],
+  },
+  timeline: {
+    say: "the short version. very short.",
+    openingTop: "somehow,",
+    openingBottom: "i keep ending up...",
+    closingMuted: "taking",
+    closingMain: "ownership.",
+    closingMobileMuted: "...taking",
+    summaryTop: "most things i got curious about, i ended up building.",
+    summaryBottom: "most things i built, i ended up looking after.",
+    // TODO: your real years and stories.
+    stops: [
+      { year: "2019", title: "where it started.", line: "computer engineering in Kathmandu. the first for-loop did not terminate." },
+      { year: "2021", title: "went mobile.", line: "Flutter at Clamphook: online classes, tests and payments." },
+      { year: "2022", title: "went freelance.", line: "e-commerce with Vendure, a restaurant booking app, legal documents." },
+      { year: "2023", title: "tried web3.", line: "a reward platform for eco-projects at ORGO." },
+      { year: "2024", title: "full stack, full time.", line: "web and native apps, end to end, at ApexEngine." },
+      { year: "2026", title: "now, what's next?", line: "open to remote full-time or part-time roles." },
+    ],
+  },
+  habit: {
+    say: "yes, it's a loop. i'm aware.",
+    title: "apparently,",
+    titleMuted: "i don't know how to leave things alone.",
+    steps: ["spot the problem.", "sketch the route.", "build it.", "tie a flag."] as const,
+    repeat: "repeat.",
+  },
+  finale: {
+    say: "go on. it's the good part.",
+    lead: "enough about me.",
+    title: "let's look at the flags i planted.",
+    mobileTitle: ["let's look at the", "flags i planted."],
+    button: "see the work",
+    buttonCursor: "show me the work ↓",
+  },
+  works: {
+    eyebrow: "summit log",
+    heading: "WORKS",
+    title: ["places i've", "planted a flag."],
+    blurb: "web and mobile products, built end to end.",
+    filterLabel: "show me",
+    empty: "That shelf is being rearranged. Try another filter.",
+  },
+  closing: {
+    greetingDeva: "धन्यवाद",
+    pitchTop: "let's build something",
+    pitchBottom: "worth the keystrokes.",
+    noteBottom: ["still loves building", "things, and always", "will."],
+    reached: "you made it all the way here? namaste.",
+    back: `© 2026 ${summitName.toLowerCase()} · back to the keyboard ↑`,
+    backCursor: "rewind ↑",
+  },
+};
+
+export type SummitProject = {
+  number: string;
+  title: string;
+  image: string;
+  /** Every screenshot, the first being the cover. */
+  images: string[];
+  tags: string[];
+  blurb: string;
+  live?: string;
+  code?: string;
+};
+
+const isReal = (url: string) => url !== "#";
+
+const summitTags = (project: ProductLaunchedItem) => {
+  const tags: string[] = [];
+  if (project.links.some((l) => l.platform === "web")) tags.push("Web");
+  if (project.links.some((l) => l.platform !== "web")) tags.push("Mobile");
+  return tags;
+};
+
+const toSummitProject = (project: ProductLaunchedItem, index: number): SummitProject => ({
+  number: String(index + 1).padStart(2, "0"),
+  title: project.name,
+  image: project.image,
+  images: project.images.length ? project.images : [project.image],
+  tags: summitTags(project),
+  blurb: project.description,
+  live: project.links.find((l) => isReal(l.url) && !l.comingSoon)?.url,
+});
+
+/** Every project, in the order they appear on the page. */
+export const summitProjects: SummitProject[] = allProjects.map(toSummitProject);
+
+export const projectFilters = ["All", "Web", "Mobile"];

@@ -1,14 +1,12 @@
 "use client";
 
-import { BASE_ALTITUDE } from "@/data/journey";
+import { BASE_ALTITUDE, SUMMIT_ALTITUDE } from "@/data/journey";
 import { profile } from "@/data/profile";
 import { scrollToElement, scrollToY } from "@/lib/lenis";
 import { useContactFormModal } from "@/stores/contact-form-modal";
-import { useMotionValueEvent, useScroll } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
 const TICKS = 31;
-const SUMMIT = 6100;
 
 export default function SiteHeader() {
   const openContact = useContactFormModal((state) => state.open);
@@ -62,33 +60,52 @@ export default function SiteHeader() {
  * climbed, from the valley floor in Kathmandu to the summit.
  */
 function Ruler() {
-  const { scrollY, scrollYProgress } = useScroll();
-  const [active, setActive] = useState(0);
-  const [climbed, setClimbed] = useState(0);
+  const altitudeRef = useRef<HTMLSpanElement>(null);
+  const tickRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  useMotionValueEvent(scrollYProgress, "change", (value) =>
-    setActive(value * (TICKS - 1)),
-  );
-  // Altitude follows the pinned trail, so the summit reads 6,100 m.
-  useMotionValueEvent(scrollY, "change", (value) => {
-    const spacer = document.querySelector<HTMLElement>(".pin-spacer");
-    const climb = spacer ? spacer.offsetHeight - window.innerHeight : 1;
-    setClimbed(Math.min(1, Math.max(0, value / climb)));
-  });
-
-  const altitude =
-    Math.round((BASE_ALTITUDE + climbed * (SUMMIT - BASE_ALTITUDE)) / 10) * 10;
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const progress = window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const active = progress * (TICKS - 1);
+      const journey = document.querySelector<HTMLElement>(".journey");
+      const spacer = journey?.parentElement?.classList.contains("pin-spacer")
+        ? journey.parentElement
+        : null;
+      const climb = spacer ? spacer.offsetHeight - window.innerHeight : 1;
+      const climbed = Math.min(1, Math.max(0, window.scrollY / Math.max(1, climb)));
+      const altitude = Math.round((BASE_ALTITUDE + climbed * (SUMMIT_ALTITUDE - BASE_ALTITUDE)) / 10) * 10;
+      if (altitudeRef.current) altitudeRef.current.textContent = `▲ ${altitude.toLocaleString("en-US")} m`;
+      tickRefs.current.forEach((tick, index) => {
+        if (!tick) return;
+        const closeness = Math.max(0, 1 - Math.abs(index - active) / 3);
+        tick.style.height = `${8 + closeness * 12}px`;
+        tick.style.opacity = String(0.25 + closeness * 0.75);
+      });
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
 
   return (
     <div
       className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-[5px] md:flex"
       aria-hidden="true"
     >
-      <span className="mr-3 w-20 text-right font-mono text-[11px] tabular-nums opacity-60">
-        ▲ {altitude.toLocaleString("en-US")} m
+      <span ref={altitudeRef} className="mr-3 w-20 text-right font-mono text-[11px] tabular-nums opacity-60">
+        ▲ {BASE_ALTITUDE.toLocaleString("en-US")} m
       </span>
       {Array.from({ length: TICKS }, (_, index) => {
-        const closeness = Math.max(0, 1 - Math.abs(index - active) / 3);
         return (
           <button
             key={index}
@@ -103,10 +120,11 @@ function Ruler() {
             className="flex h-6 items-center"
           >
             <span
+              ref={(el) => { tickRefs.current[index] = el; }}
               className="block w-px bg-current transition-[height,opacity] duration-150"
               style={{
-                height: 8 + closeness * 12,
-                opacity: 0.25 + closeness * 0.75,
+                height: 8,
+                opacity: 0.25,
               }}
             />
           </button>

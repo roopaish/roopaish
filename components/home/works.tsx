@@ -3,157 +3,280 @@
 import StoreBadge from "@/components/store-badge";
 import { flagColors } from "@/data/journey";
 import { ProductLaunchedItem, projects } from "@/data/projects";
+import { scrollToY } from "@/lib/lenis";
 import { cn } from "@/lib/utils";
+import { useGSAP } from "@gsap/react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRightIcon } from "lucide-react";
 import {
   AnimatePresence,
   motion,
   useMotionValue,
-  useScroll,
   useSpring,
-  useTransform,
 } from "motion/react";
 import Image from "next/image";
 import { MouseEvent, useRef, useState } from "react";
 
-type Filter = "all" | "web" | "mobile";
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const filters: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "web", label: "Web" },
-  { id: "mobile", label: "Mobile" },
-];
+// TODO: replace section copy.
+const copy = {
+  eyebrow: "Summit log",
+  title: "Places I've planted a flag.",
+};
+
+// TODO: the year each project shipped.
+const years: Record<string, string> = {
+  Biggya: "2025",
+  Ekagajpatra: "2024",
+  "Clamphook Mobile App": "2021",
+  "Production Ready Ecommerce": "2022",
+  "Real-Estate Platform": "2024",
+  Aagaman: "2023",
+  Menzz: "2022",
+};
+
+/** Prayer flag colours without the white one, for the discs behind frames. */
+const discColors = flagColors.filter((color) => color !== "#f3efe4");
+const RULER_TICKS = 72;
 
 const isWeb = (project: ProductLaunchedItem) =>
   project.links.some((link) => link.platform === "web");
 const isMobile = (project: ProductLaunchedItem) =>
   project.links.some((link) => link.platform !== "web");
 
-function matches(project: ProductLaunchedItem, filter: Filter) {
-  if (filter === "web") return isWeb(project);
-  if (filter === "mobile") return isMobile(project);
-  return true;
-}
-
-// TODO: replace section copy.
-const copy = {
-  eyebrow: "Summit log · 2021 — now",
-  title: ["Places I've", "planted a flag."],
-  body: "Web apps, mobile apps and the backends that keep them honest — each one taken from idea to launch.",
-};
-
+/**
+ * A pinned horizontal strip of project frames. The frame in the middle of
+ * the screen grows to full size, a ruler at the bottom shows where you are
+ * and its year marks jump to each project.
+ */
 export default function Works() {
-  const [filter, setFilter] = useState<Filter>("all");
-  const listRef = useRef<HTMLDivElement>(null);
-  const visible = projects.filter((project) => matches(project, filter));
+  const sectionRef = useRef<HTMLElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const frameRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const markerRef = useRef<HTMLSpanElement>(null);
+  const triggerRef = useRef<ScrollTrigger | null>(null);
+  const [active, setActive] = useState(0);
 
-  // The thread continues down the page alongside the projects.
-  const { scrollYProgress } = useScroll({
-    target: listRef,
-    offset: ["start 75%", "end 60%"],
-  });
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
-  const penTop = useTransform(progress, (value) => `${value * 100}%`);
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      const strip = stripRef.current;
+      if (!section || !strip) return;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      const distance = () => Math.max(0, strip.scrollWidth - window.innerWidth);
+      let current = -1;
+
+      const update = () => {
+        const progress = triggerRef.current?.progress ?? 0;
+        const x = progress * distance();
+        strip.style.transform = `translate3d(${-x}px,0,0)`;
+        if (markerRef.current) {
+          markerRef.current.style.left = `${progress * 100}%`;
+        }
+
+        let nearest = 0;
+        let nearestDistance = Infinity;
+        frameRefs.current.forEach((el, index) => {
+          if (!el) return;
+          const center = el.offsetLeft + el.offsetWidth / 2 - x;
+          const offset = (center - window.innerWidth / 2) / window.innerWidth;
+          const t = Math.min(1, Math.abs(offset) * 1.6);
+          if (!reduceMotion) {
+            el.style.scale = String(1 - t * 0.2);
+            el.style.opacity = String(1 - t * 0.55);
+          }
+          if (Math.abs(offset) < nearestDistance) {
+            nearestDistance = Math.abs(offset);
+            nearest = index;
+          }
+        });
+        if (nearest !== current) {
+          current = nearest;
+          setActive(nearest);
+        }
+      };
+
+      triggerRef.current = ScrollTrigger.create({
+        trigger: section,
+        start: "top top",
+        end: () => `+=${distance()}`,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        // The trail above pins too; measure after it.
+        refreshPriority: -1,
+        onUpdate: update,
+        onRefresh: update,
+      });
+      update();
+
+      return () => {
+        triggerRef.current = null;
+      };
+    },
+    { scope: sectionRef },
+  );
+
+  function jumpTo(index: number) {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const progress = projects.length > 1 ? index / (projects.length - 1) : 0;
+    scrollToY(trigger.start + progress * (trigger.end - trigger.start));
+  }
+
+  const project = projects[active];
 
   return (
-    <section id="work" className="px-5 pt-32 pb-24 md:px-8">
-      <div className="mx-auto grid max-w-7xl gap-14 md:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]">
-        <aside className="md:sticky md:top-28 md:self-start">
+    <section
+      ref={sectionRef}
+      id="work"
+      aria-label="Work"
+      className="relative flex h-svh flex-col overflow-hidden pt-24 pb-6"
+    >
+      <div className="flex items-end justify-between px-5 md:px-8">
+        <div>
           <p className="font-mono text-[11px] tracking-wider uppercase opacity-55">
-            {copy.eyebrow}
+            {copy.eyebrow} · {projects.length} summits
           </p>
-          <h2 className="font-display mt-4 text-5xl leading-[0.95] font-bold tracking-tight md:text-6xl">
-            {copy.title.map((line) => (
-              <span key={line} className="block">
-                {line}
-              </span>
-            ))}
+          <h2 className="font-display mt-2 text-4xl leading-none font-bold tracking-tight md:text-5xl">
+            {copy.title}
           </h2>
-          <p className="mt-4 max-w-[34ch] opacity-60">{copy.body}</p>
+        </div>
+        <p className="font-mono text-sm tabular-nums opacity-60">
+          {String(active + 1).padStart(2, "0")} /{" "}
+          {String(projects.length).padStart(2, "0")}
+        </p>
+      </div>
 
-          <div
-            className="mt-8 flex gap-1"
-            role="tablist"
-            aria-label="Filter work"
-          >
-            {filters.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={filter === item.id}
-                onClick={() => setFilter(item.id)}
-                className="relative h-9 rounded-full px-4 text-sm"
-              >
-                {filter === item.id && (
-                  <motion.span
-                    layoutId="work-filter"
-                    className="absolute inset-0 rounded-full bg-(--ink)"
-                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                  />
-                )}
-                <span
-                  className={cn(
-                    "relative transition-colors",
-                    filter === item.id && "text-(--paper)",
-                  )}
+      <div className="relative flex min-h-0 flex-1 items-center">
+        <div
+          ref={stripRef}
+          className="flex items-center gap-[4vw] px-[calc((100vw-min(62vw,72svh,880px))/2)] will-change-transform"
+        >
+          {projects.map((item, index) => (
+            <Frame
+              key={item.name}
+              project={item}
+              index={index}
+              ref={(el) => {
+                frameRefs.current[index] = el;
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="px-5 md:px-8">
+        <div className="flex min-h-24 flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={project.name}
+              initial={{ opacity: 0, transform: "translateY(6px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)" }}
+              exit={{ opacity: 0, transform: "translateY(-6px)" }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            >
+              <p className="font-mono text-[11px] tracking-wider uppercase opacity-55">
+                {years[project.name] ?? "—"} ·{" "}
+                {[isWeb(project) && "web", isMobile(project) && "mobile"]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+              <h3 className="font-display mt-1 text-2xl font-bold tracking-tight md:text-3xl">
+                {project.name}
+              </h3>
+              <p className="mt-1 max-w-[60ch] text-sm opacity-60 md:text-base">
+                {project.description}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {project.links.map((link) =>
+              link.url === "#" ? (
+                <StoreBadge
+                  key={link.platform}
+                  platform={link.platform}
+                  comingSoon={link.comingSoon}
+                />
+              ) : (
+                <a
+                  key={link.platform}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
                 >
-                  {item.label}
-                </span>
-              </button>
+                  <StoreBadge platform={link.platform} />
+                </a>
+              ),
+            )}
+          </div>
+        </div>
+
+        {/* Ruler: fine ticks for the whole strip, a year mark per project. */}
+        <div className="relative mt-5 h-10">
+          <div className="absolute inset-x-0 top-0 flex justify-between">
+            {Array.from({ length: RULER_TICKS }, (_, tick) => (
+              <span
+                key={tick}
+                className={cn(
+                  "w-px bg-current",
+                  tick % 6 === 0 ? "h-3 opacity-35" : "h-2 opacity-15",
+                )}
+              />
             ))}
           </div>
-          <p className="mt-3 font-mono text-xs opacity-50">
-            showing {visible.length} of {projects.length}
-          </p>
-        </aside>
-
-        <div ref={listRef} className="relative pl-8 md:pl-12">
-          <div className="absolute top-0 bottom-0 left-0 w-px bg-current opacity-10" />
-          <motion.div
-            className="absolute top-0 bottom-0 left-0 w-[1.6px] origin-top bg-current"
-            style={{ scaleY: progress }}
+          {projects.map((item, index) => {
+            const left = `${(index / Math.max(1, projects.length - 1)) * 100}%`;
+            return (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => jumpTo(index)}
+                aria-label={`Go to ${item.name}`}
+                className={cn(
+                  "absolute top-0 flex -translate-x-1/2 flex-col items-center gap-1 font-mono text-[10px] transition-opacity",
+                  active === index ? "opacity-100" : "opacity-45 hover:opacity-80",
+                )}
+                style={{ left }}
+              >
+                <span className="h-4 w-px bg-current" />
+                {years[item.name] ?? "—"}
+              </button>
+            );
+          })}
+          <span
+            ref={markerRef}
+            className="pointer-events-none absolute -top-1 size-2.5 -translate-x-1/2 rounded-full bg-[#c43a30]"
           />
-          <motion.span
-            className="absolute left-0 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-(--paper) bg-[#c43a30]"
-            style={{ top: penTop }}
-          />
-
-          <motion.div layout className="flex flex-col gap-16">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {visible.map((project) => (
-                <ProjectCard
-                  key={project.name}
-                  project={project}
-                  index={projects.indexOf(project)}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
         </div>
       </div>
     </section>
   );
 }
 
-function ProjectCard({
+function Frame({
   project,
   index,
+  ref,
 }: {
   project: ProductLaunchedItem;
   index: number;
+  ref: (el: HTMLDivElement | null) => void;
 }) {
   const [hovering, setHovering] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const pillX = useSpring(x, { stiffness: 500, damping: 40 });
   const pillY = useSpring(y, { stiffness: 500, damping: 40 });
-
   const primary = project.links.find((link) => link.url !== "#");
-  const tags = [isWeb(project) && "web", isMobile(project) && "mobile"].filter(
-    Boolean,
-  );
   const mobileShot = !isWeb(project);
+  // Alternate the disc between corners so the strip has a rhythm.
+  const discCorner =
+    index % 2 ? "-bottom-[18%] -left-[8%]" : "-top-[18%] -right-[8%]";
 
   function onMove(event: MouseEvent<HTMLElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -162,12 +285,12 @@ function ProjectCard({
   }
 
   const media = (
-    <div className="relative aspect-16/10 overflow-hidden rounded-xl bg-current/5">
+    <div className="relative aspect-16/10 overflow-hidden rounded-2xl bg-(--paper) shadow-[0_40px_80px_-40px_rgba(0,0,0,0.45)] ring-1 ring-current/10">
       <Image
         src={project.image}
         alt={project.name}
         fill
-        sizes="(min-width: 768px) 60vw, 100vw"
+        sizes="(min-width: 768px) 62vw, 90vw"
         className={cn(
           "transition-transform duration-700 ease-out group-hover:scale-[1.03]",
           mobileShot ? "object-contain py-6" : "object-cover object-top",
@@ -191,23 +314,21 @@ function ProjectCard({
   );
 
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      viewport={{ once: true, amount: 0.25 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="relative"
+    <div
+      ref={ref}
+      className="relative isolate w-[min(62vw,72svh,880px)] shrink-0 origin-center"
     >
-      {/* A little prayer flag where the trail reaches this project. */}
       <span
-        className="absolute top-1 -left-8 h-4 w-3 origin-left md:-left-12"
-        style={{ backgroundColor: flagColors[index % flagColors.length] }}
-      >
-        <span className="absolute top-0 -left-px h-7 w-px bg-current" />
-      </span>
-
+        aria-hidden="true"
+        className={cn(
+          "absolute -z-10 aspect-square w-[45%] rounded-full",
+          discCorner,
+        )}
+        style={{ backgroundColor: discColors[index % discColors.length] }}
+      />
+      <p className="mb-3 font-mono text-[11px] tracking-wider uppercase opacity-55">
+        Summit {String(index + 1).padStart(2, "0")}
+      </p>
       {primary ? (
         <a
           href={primary.url}
@@ -224,38 +345,6 @@ function ProjectCard({
       ) : (
         media
       )}
-
-      <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="font-mono text-[11px] tracking-wider uppercase opacity-55">
-            Summit {String(index + 1).padStart(2, "0")} · {tags.join(" · ")}
-          </p>
-          <h3 className="font-display mt-1 text-3xl font-bold tracking-tight">
-            {project.name}
-          </h3>
-          <p className="mt-1 max-w-[52ch] opacity-60">{project.description}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          {project.links.map((link) =>
-            link.url === "#" ? (
-              <StoreBadge
-                key={link.platform}
-                platform={link.platform}
-                comingSoon={link.comingSoon}
-              />
-            ) : (
-              <a
-                key={link.platform}
-                href={link.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <StoreBadge platform={link.platform} />
-              </a>
-            ),
-          )}
-        </div>
-      </div>
-    </motion.article>
+    </div>
   );
 }

@@ -3,19 +3,22 @@
 import {
   camps,
   climbCopy,
-  gear,
+  HeroPeak,
   heroCopy,
-  packingCopy,
-  packingList,
+  pinChat,
+  stackCopy,
+  stackTimeline,
+  summit,
   summitCopy,
 } from "@/data/journey";
 import { scrollToElement } from "@/lib/lenis";
 import { cssX } from "@/lib/thread";
 import { useContactFormModal } from "@/stores/contact-form-modal";
-import { ArrowDownIcon, CheckIcon } from "lucide-react";
+import { ArrowDownIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import CampLabel from "./camp-label";
+import Chat from "./chat";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -37,16 +40,22 @@ export function HeroPanel() {
       {/* "You are here" marker at the start of the route. */}
       <motion.div
         {...fadeUp(0.4)}
-        className="absolute flex -translate-y-1/2 items-center gap-2"
-        style={{ left: "calc(var(--u) * 0.06 - 7px)", top: "36%" }}
+        className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+        style={{ left: "calc(var(--u) * 0.06)", top: "50%" }}
       >
-        <span className="relative flex size-3.5">
-          <span className="absolute inset-0 animate-ping rounded-full bg-[#c43a30] opacity-40" />
-          <span className="relative size-3.5 rounded-full border-2 border-(--paper) bg-[#c43a30]" />
-        </span>
-        <span className="mt-9 -ml-5 font-mono text-[10px] tracking-wider uppercase opacity-60">
-          You are here
-        </span>
+        <Chat messages={pinChat} placement="right">
+          <button
+            type="button"
+            aria-label="Say hi"
+            className="relative flex size-8 cursor-help items-center justify-center"
+          >
+            <span className="absolute size-3.5 animate-ping rounded-full bg-[#c43a30] opacity-40" />
+            <span className="relative size-3.5 rounded-full border-2 border-(--paper) bg-[#c43a30]" />
+            <span className="absolute top-8 font-mono text-[10px] tracking-wider whitespace-nowrap uppercase opacity-60">
+              You are here
+            </span>
+          </button>
+        </Chat>
       </motion.div>
 
       <div className="absolute bottom-8 left-5 max-w-xl md:left-8">
@@ -98,93 +107,90 @@ export function HeroPanel() {
   );
 }
 
-export function PeakLabels({
-  peaks,
+export function HeroPeakLabel({
+  peak,
+  x,
+  y,
 }: {
-  peaks: { name: string; altitude: number; x: number; y: number }[];
+  peak: HeroPeak;
+  x: number;
+  y: number;
 }) {
-  return peaks.map((peak) => (
-    <div
-      key={peak.name}
-      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 text-center"
-      style={{ left: peak.x, top: peak.y }}
-    >
-      <span className="mx-auto block size-0 border-x-[5px] border-b-[8px] border-x-transparent border-b-current opacity-70" />
-      <span className="mt-1 block font-mono text-[10px] tracking-wider whitespace-nowrap uppercase opacity-60">
-        {peak.name}
-      </span>
-      <span className="block font-mono text-[10px] opacity-40">
-        {peak.altitude.toLocaleString("en-US")} m
-      </span>
-    </div>
-  ));
-}
-
-export function Gear() {
-  return gear.map((object) => (
-    <div
-      key={object.src}
-      className="absolute"
-      style={{ left: cssX(object.at), top: `${object.y * 100}%` }}
-      data-drift={object.drift}
-    >
-      <motion.div
-        drag
-        dragSnapToOrigin
-        dragElastic={0.4}
-        whileHover={{ scale: 1.08, rotate: object.rotate * -0.6 }}
-        whileDrag={{ scale: 1.15, cursor: "grabbing" }}
-        style={{ rotate: object.rotate, width: object.size }}
-        className="cursor-grab touch-none drop-shadow-[0_24px_24px_rgba(0,0,0,0.12)]"
-      >
-        <Image
-          src={object.src}
-          alt={object.alt}
-          width={256}
-          height={256}
-          draggable={false}
-          className="pointer-events-none h-auto w-full select-none"
-        />
-      </motion.div>
-    </div>
-  ));
-}
-
-export function PackingPanel() {
   return (
     <div
-      className="absolute top-[46%] w-[min(30rem,88vw)] -translate-x-1/2 -translate-y-1/2 -rotate-1 rounded-sm bg-(--paper) p-6 shadow-[0_1px_0_rgba(0,0,0,0.06),0_30px_60px_-30px_rgba(0,0,0,0.35)] ring-1 ring-current/10 md:p-8"
-      style={{ left: cssX({ a: 1, b: 0.48 }) }}
+      className="absolute -translate-x-1/2 -translate-y-full pb-2"
+      style={{ left: x, top: y }}
     >
-      <p className="font-mono text-[11px] tracking-wider uppercase opacity-55">
-        {packingCopy.eyebrow}
-      </p>
-      <p className="font-display mt-2 text-3xl leading-tight font-semibold tracking-tight">
-        {packingCopy.title}
-      </p>
-      <ul className="mt-6 divide-y divide-current/10 border-y border-current/10">
-        {packingList.map((entry, index) => (
-          <li
-            key={entry.item}
-            className="packing-item flex items-center gap-3 py-2.5"
-            // Each line ticks off as the pen passes under the list.
-            data-reveal-a={1}
-            data-reveal-b={0.26 + index * 0.07}
-          >
-            <span className="packing-box grid size-5 shrink-0 place-items-center rounded-[3px] border border-current/40">
-              <CheckIcon className="size-3.5" strokeWidth={3} />
-            </span>
-            <span className="font-medium">{entry.item}</span>
-            <span className="ml-auto text-right text-sm opacity-55">
-              {entry.why}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 font-mono text-[10px] tracking-wider uppercase opacity-45">
-        {packingCopy.note}
-      </p>
+      <Chat messages={peak.chat} placement="bottom">
+        <button
+          type="button"
+          className="flex cursor-help flex-col items-center rounded-md px-2 py-1 text-center transition-colors hover:bg-current/5"
+        >
+          <span className="font-mono text-[10px] tracking-wider whitespace-nowrap uppercase opacity-60">
+            {peak.name}
+          </span>
+          <span className="font-mono text-[10px] opacity-40">
+            {peak.altitude.toLocaleString("en-US")} m
+          </span>
+          <span className="mt-1 h-3 w-px bg-current opacity-30" />
+        </button>
+      </Chat>
     </div>
+  );
+}
+
+export function StackPanel() {
+  return (
+    <>
+      <div
+        className="absolute top-[11%]"
+        style={{ left: cssX({ a: 1, b: 0.1 }) }}
+        data-reveal-a={1}
+        data-reveal-b={0.1}
+      >
+        <p className="font-mono text-[11px] tracking-wider uppercase opacity-55">
+          {stackCopy.eyebrow}
+        </p>
+        <p className="font-display mt-2 max-w-[22ch] text-3xl leading-tight font-semibold tracking-tight md:text-4xl">
+          {stackCopy.title}
+        </p>
+      </div>
+
+      {stackTimeline.map((entry) => (
+        // Each stop reaches from its card down to the trail, which is the
+        // timeline's axis here. The dot fills in once the hiker passes it.
+        <div
+          key={entry.item}
+          className="stack-stop absolute bottom-[16%] flex w-0 flex-col items-center"
+          style={{ left: cssX(entry.at), top: `${entry.y * 100}%` }}
+          data-reveal-a={entry.at.a}
+          data-reveal-b={entry.at.b}
+        >
+          <Chat messages={entry.chat} placement="top">
+            <button
+              type="button"
+              className="stack-card flex w-40 cursor-help flex-col items-center gap-1 rounded-xl bg-(--paper) px-3 pt-2 pb-3 text-center ring-1 ring-current/10 transition-[box-shadow,translate] hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.35)]"
+            >
+              <Image
+                src={entry.icon}
+                alt=""
+                width={96}
+                height={96}
+                className="size-12 drop-shadow-[0_8px_8px_rgba(0,0,0,0.12)]"
+              />
+              <span className="font-mono text-[11px] tracking-wider opacity-55">
+                {entry.year}
+              </span>
+              <span className="font-display leading-tight font-semibold">
+                {entry.item}
+              </span>
+            </button>
+          </Chat>
+          <span className="stack-stick w-px flex-1 bg-current opacity-25" />
+          <span className="stack-dot size-3 translate-y-1/2 rounded-full border-2 border-current bg-(--paper)" />
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -204,17 +210,33 @@ export function ClimbPanel() {
           {climbCopy.title}
         </p>
       </div>
-      {camps
-        .filter((camp) => !camp.hideLabel)
-        .map((camp) => (
-          <CampLabel key={`${camp.name}-${camp.year}`} camp={camp} />
-        ))}
+      {camps.map((camp) => (
+        <CampLabel key={`${camp.name}-${camp.year}`} camp={camp} />
+      ))}
     </>
   );
 }
 
 export function SummitPanel() {
   return (
+    <>
+      <div
+        className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+        style={{ left: cssX(summit.at), top: `${summit.y * 100}%` }}
+        data-reveal-a={summit.at.a}
+        data-reveal-b={summit.at.b}
+      >
+        <Chat messages={summit.chat} placement="bottom">
+          <button
+            type="button"
+            aria-label="Summit"
+            className="relative flex size-8 cursor-help items-center justify-center"
+          >
+            <span className="absolute size-4 animate-ping rounded-full bg-[#c43a30] opacity-30" />
+            <span className="relative size-2.5 rounded-full bg-[#c43a30]" />
+          </button>
+        </Chat>
+      </div>
     <div
       className="absolute top-[52%] w-[min(26rem,85vw)]"
       style={{
@@ -238,5 +260,6 @@ export function SummitPanel() {
         See the work <ArrowDownIcon className="size-4" />
       </button>
     </div>
+    </>
   );
 }

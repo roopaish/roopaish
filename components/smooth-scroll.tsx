@@ -4,12 +4,20 @@ import { setLenis } from "@/lib/lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function SmoothScroll() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    // The home page runs their own eased scroll loop; stacking Lenis on top would smooth it twice.
+    if (pathname === "/") {
+      return;
+    }
+
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -45,7 +53,7 @@ export default function SmoothScroll() {
       setLenis(null);
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

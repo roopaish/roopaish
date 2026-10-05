@@ -17,7 +17,7 @@ export class FlagLine {
     from: Point,
     to: Point,
     private count = 30,
-    sag = 1.03,
+    sag = 1.012,
   ) {
     this.segment =
       (Math.hypot(to.x - from.x, to.y - from.y) * sag) / (count - 1);

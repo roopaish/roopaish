@@ -1,8 +1,8 @@
 "use client";
 
-import { flagColors, flagLine } from "@/data/journey";
+import { flagColors, flagLine, track } from "@/data/journey";
 import {
-  closedSmoothPath,
+  cssX,
   MIN_UNIT,
   Point,
   smoothPath,
@@ -15,13 +15,12 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { FlagLine } from "./flag-line";
-import { altitudeAt, buildGeometry, FAR_RANGE_SPEED } from "./geometry";
+import { buildGeometry, FAR_RANGE_SPEED, HERO_LAYER_SPEED } from "./geometry";
 import {
   ClimbPanel,
-  Gear,
   HeroPanel,
-  PackingPanel,
-  PeakLabels,
+  HeroPeakLabel,
+  StackPanel,
   SummitPanel,
 } from "./panels";
 
@@ -29,12 +28,11 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const INTRO_MS = 2000;
 const PLUCK_RADIUS = 100;
-const BULGE_RADIUS = 160;
-const GPS_POINTS = 70;
 const FLAG_NODES = 30;
+/** How far (px) each hero layer shifts with the cursor, far → near. */
+const HERO_PARALLAX = [10, 22];
 
 type Revealable = { el: HTMLElement; x: number; shown: boolean };
-type Drifter = { el: HTMLElement; drift: number };
 
 const lerpPoint = (a: Point, b: Point, t: number): Point => ({
   x: a.x + (b.x - a.x) * t,
@@ -42,20 +40,20 @@ const lerpPoint = (a: Point, b: Point, t: number): Point => ({
 });
 
 /**
- * Pinned horizontal section, told as a trek. It starts on a topographic map
- * of the hills around Kathmandu that bends under your cursor, the route
- * becomes the ridge of the climb (jobs are camps, side gigs are detours) and
- * it ends with prayer flags on the summit that blow when you move near them.
+ * Pinned horizontal section, told as a trek. It starts in the foothills of
+ * Kathmandu with the Himalaya behind, crosses a valley where the stack is laid
+ * out as a timeline, climbs a ridge (jobs are camps, side gigs are detours)
+ * and ends with prayer flags on the summit that blow when you move near them.
+ * Markers along the way open little chat bubbles on hover.
  */
 export default function Journey() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const farRangeRef = useRef<SVGSVGElement>(null);
-  const topoRef = useRef<SVGGElement>(null);
-  const peakLabelsRef = useRef<HTMLDivElement>(null);
-  const contourRefs = useRef<(SVGPathElement | null)[]>([]);
-  const gpsRef = useRef<SVGPathElement>(null);
-  const readoutRef = useRef<HTMLDivElement>(null);
+  const heroLayerRefs = useRef<(HTMLElement | SVGSVGElement | null)[][]>([
+    [],
+    [],
+  ]);
   const routeRef = useRef<SVGPathElement>(null);
   const ridgeRef = useRef<SVGPathElement>(null);
   const hikerRef = useRef<SVGCircleElement>(null);
@@ -101,23 +99,20 @@ export default function Journey() {
         end: () => `+=${distance}`,
         pin: true,
         anticipatePin: 1,
+        refreshPriority: 1,
       });
+      // Sections below (the work strip) pin too and need re-measuring now
+      // that this pin spacer exists.
+      ScrollTrigger.sort();
+      ScrollTrigger.refresh();
 
-      const { trail, revealX, ridgeStart, peaks, poles } = geometry;
+      const { trail, revealX, ridgeStart, poles } = geometry;
       const total = trail.length;
       const points: Point[] = trail.map((p) => ({ ...p }));
       const offsetX = new Float32Array(total);
       const offsetY = new Float32Array(total);
       const velocityX = new Float32Array(total);
       const velocityY = new Float32Array(total);
-
-      const contours = peaks.flatMap((peak) => peak.contours);
-      const ringOf = peaks.flatMap((peak) =>
-        peak.contours.map((_, ring) => ring),
-      );
-      const bent = contours.map((contour) =>
-        contour.base.map((p) => ({ ...p })),
-      );
 
       const revealables: Revealable[] = Array.from(
         section.querySelectorAll<HTMLElement>("[data-reveal-a]"),
@@ -130,11 +125,8 @@ export default function Journey() {
       }));
       revealables.forEach(({ el }) => (el.dataset.shown = "false"));
 
-      const drifters: Drifter[] = Array.from(
-        section.querySelectorAll<HTMLElement>("[data-drift]"),
-      ).map((el) => ({ el, drift: Number(el.dataset.drift) }));
-
       const pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false };
+      let pointerMoved = false;
       const onPointerMove = (event: PointerEvent) => {
         if (pointer.active) {
           pointer.vx = event.clientX - pointer.x;
@@ -143,25 +135,37 @@ export default function Journey() {
         pointer.x = event.clientX;
         pointer.y = event.clientY;
         pointer.active = true;
+        pointerMoved = true;
       };
       const onPointerLeave = () => (pointer.active = false);
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       document.documentElement.addEventListener("pointerleave", onPointerLeave);
 
       const flags = new FlagLine(poles[0].top, poles[1].top, FLAG_NODES);
-      const gps: Point[] = [];
-      let idleFrames = 0;
-      const bulge = { x: u / 2, y: h / 2, strength: 0 };
-      let topoState = "";
+      const parallax = { x: 0, y: 0 };
 
       // Only play the intro when the page starts at the top.
       const introStart = trigger.progress > 0 ? -Infinity : performance.now();
       const heroFrontier = u * 1.02;
+      let lastScrollX = Number.NaN;
+      let lastFrontier = Number.NaN;
+      let trailIsMoving = true;
 
       const tick = (time: number) => {
         const sectionRect = section.getBoundingClientRect();
         const scrollX = trigger.progress * distance;
-        trackEl.style.transform = `translate3d(${-scrollX}px,0,0)`;
+        const scrollChanged =
+          Number.isNaN(lastScrollX) || Math.abs(scrollX - lastScrollX) > 0.01;
+        if (scrollChanged) {
+          trackEl.style.transform = `translate3d(${-scrollX}px,0,0)`;
+          lastScrollX = scrollX;
+        }
+
+        // The pinned scene is expensive to draw. Once it has settled outside
+        // the viewport, keep its last frame and let the rest of the page scroll.
+        const visible = sectionRect.bottom > 0 && sectionRect.top < window.innerHeight;
+        const introRunning = !reduceMotion && performance.now() - introStart < INTRO_MS;
+        if (!visible && !scrollChanged && !introRunning) return;
 
         const inSection =
           pointer.active &&
@@ -172,91 +176,39 @@ export default function Journey() {
           : null;
         const local = screen ? { x: screen.x + scrollX, y: screen.y } : null;
 
-        // Distant range drifts slower than the trail and fades in after the map.
+        // 1. Distant range drifts slower than the trail, fades in after the
+        //    hero and sinks as you climb, so you end up above it.
         if (farRangeRef.current) {
-          farRangeRef.current.style.transform = `translate3d(${-scrollX * FAR_RANGE_SPEED}px,0,0)`;
+          const sink = smoothstep((scrollX - u) / Math.max(1, distance - u));
+          farRangeRef.current.style.transform = `translate3d(${-scrollX * FAR_RANGE_SPEED}px,${sink * h * 0.28}px,0)`;
           farRangeRef.current.style.opacity = String(
             smoothstep((scrollX - u * 0.35) / (u * 0.6)),
           );
         }
 
-        // 1. Topographic map: the terrain swells under the cursor and the
-        //    contour layers lift away as the trek starts.
-        const lift = smoothstep(scrollX / (u * 0.8));
-        if (lift < 1) {
-          const onMap = !reduceMotion && local !== null && local.x < u;
-          if (local) {
-            bulge.x += (local.x - bulge.x) * 0.16;
-            bulge.y += (local.y - bulge.y) * 0.16;
+        // 2. Hero ranges: slower than the trail, nudged by the cursor and
+        //    faded out once the trek leaves the foothills.
+        const inHero = !reduceMotion && screen !== null && scrollX < u;
+        parallax.x += ((inHero && screen ? screen.x / u - 0.5 : 0) - parallax.x) * 0.06;
+        parallax.y += ((inHero && screen ? screen.y / h - 0.5 : 0) - parallax.y) * 0.06;
+        const heroFade = 1 - smoothstep((scrollX - u * 0.3) / (u * 0.8));
+        heroLayerRefs.current.forEach((els, layer) => {
+          const x = -scrollX * HERO_LAYER_SPEED[layer] - parallax.x * HERO_PARALLAX[layer];
+          const y = -parallax.y * HERO_PARALLAX[layer] * 0.5;
+          for (const el of els) {
+            if (!el) continue;
+            el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+            el.style.opacity = String(heroFade);
+            el.style.visibility = heroFade <= 0 ? "hidden" : "visible";
           }
-          bulge.strength += ((onMap ? 1 : 0) - bulge.strength) * 0.08;
-
-          const state = `${bulge.x | 0},${bulge.y | 0},${bulge.strength.toFixed(3)},${lift.toFixed(3)}`;
-          if (state !== topoState) {
-            topoState = state;
-            const sigma2 = 2 * (BULGE_RADIUS * 0.55) ** 2;
-            contours.forEach((contour, c) => {
-              const ring = bent[c];
-              for (let i = 0; i < contour.base.length; i++) {
-                const p = contour.base[i];
-                const dx = p.x - bulge.x;
-                const dy = p.y - bulge.y;
-                const d2 = dx * dx + dy * dy;
-                const d = Math.sqrt(d2) || 1;
-                const push =
-                  bulge.strength * BULGE_RADIUS * 0.42 * Math.exp(-d2 / sigma2);
-                ring[i].x = p.x + (dx / d) * push;
-                ring[i].y = p.y + (dy / d) * push - lift * ringOf[c] * 7;
-              }
-              contourRefs.current[c]?.setAttribute("d", closedSmoothPath(ring));
-            });
-          }
-        }
-        if (topoRef.current) topoRef.current.style.opacity = String(1 - lift);
-        if (peakLabelsRef.current) {
-          peakLabelsRef.current.style.opacity = String(1 - lift);
-          peakLabelsRef.current.style.transform = `translate3d(0,${-lift * 60}px,0)`;
-        }
-
-        // 2. GPS track + live coordinates behind the cursor while on the map.
-        const showReadout =
-          !reduceMotion && local !== null && scrollX < u * 0.5 && local.x < u;
-        if (showReadout && local) {
-          const last = gps[gps.length - 1];
-          if (!last || Math.hypot(local.x - last.x, local.y - last.y) > 4) {
-            gps.push({ x: local.x, y: local.y });
-            if (gps.length > GPS_POINTS) gps.shift();
-            idleFrames = 0;
-          } else {
-            idleFrames++;
-          }
-        } else {
-          idleFrames++;
-        }
-        if (idleFrames > 10 && gps.length) gps.shift();
-        gpsRef.current?.setAttribute(
-          "d",
-          gps.length > 1 ? smoothPath(gps) : "",
-        );
-
-        const readout = readoutRef.current;
-        if (readout) {
-          readout.style.opacity = showReadout ? "1" : "0";
-          if (showReadout && screen && local) {
-            readout.style.transform = `translate3d(${screen.x + 18}px,${screen.y + 18}px,0)`;
-            const lat = 27.8 - (local.y / h) * 0.18;
-            const lon = 85.2 + (local.x / u) * 0.25;
-            const altitude = altitudeAt(local, peaks);
-            readout.textContent = `${lat.toFixed(4)}° N  ${lon.toFixed(4)}° E  ·  ${altitude.toLocaleString("en-US")} m`;
-          }
-        }
+        });
 
         // 3. The trail wobbles where the cursor touches it, then settles.
-        for (let i = 0; i < total; i++) {
-          if (reduceMotion) break;
+        let moving = false;
+        for (let i = 0; i < total && !reduceMotion && (pointerMoved || trailIsMoving); i++) {
           const px = trail[i].x + offsetX[i];
           const py = trail[i].y + offsetY[i];
-          if (local) {
+          if (local && pointerMoved) {
             const dx = px - local.x;
             const dy = py - local.y;
             const dist = Math.hypot(dx, dy);
@@ -270,9 +222,12 @@ export default function Journey() {
           velocityY[i] = (velocityY[i] - offsetY[i] * 0.07) * 0.86;
           offsetX[i] += velocityX[i];
           offsetY[i] += velocityY[i];
+          moving ||= Math.abs(offsetX[i]) + Math.abs(offsetY[i]) > 0.02;
           points[i].x = trail[i].x + offsetX[i];
           points[i].y = trail[i].y + offsetY[i];
         }
+        trailIsMoving = moving;
+        pointerMoved = false;
 
         // 4. Draw up to the hiker: first the route across the map, then
         //    whatever the scroll has reached (a bit further near the end).
@@ -286,6 +241,10 @@ export default function Journey() {
                 heroFrontier,
                 scrollX + u * (0.7 + trigger.progress ** 6 * 0.45),
               );
+        const frontierChanged =
+          Number.isNaN(lastFrontier) || Math.abs(frontier - lastFrontier) > 0.01;
+        if (frontierChanged) lastFrontier = frontier;
+        if (frontierChanged || moving) {
         let k = 1;
         while (k < total && revealX[k] <= frontier) k++;
         let drawn: Point[];
@@ -322,6 +281,7 @@ export default function Journey() {
             item.el.dataset.shown = String(shown);
           }
         }
+        }
 
         // 5. Prayer flags: only simulated once the summit is close.
         if (scrollX > distance - u * 1.5) {
@@ -350,13 +310,6 @@ export default function Journey() {
         }
         pointer.vx *= 0.85;
         pointer.vy *= 0.85;
-
-        // 6. Gear drifts at its own pace for a bit of depth.
-        const parallaxX = screen ? screen.x / u - 0.5 : 0;
-        const parallaxY = screen ? screen.y / h - 0.5 : 0;
-        for (const { el, drift } of drifters) {
-          el.style.transform = `translate3d(${(scrollX * drift + parallaxX * drift * 120).toFixed(1)}px,${(parallaxY * drift * 80).toFixed(1)}px,0)`;
-        }
       };
 
       gsap.ticker.add(tick);
@@ -378,8 +331,6 @@ export default function Journey() {
     "--U": size ? `${size.U}px` : `max(100vw, ${MIN_UNIT}px)`,
   } as CSSProperties;
 
-  let contourIndex = 0;
-
   return (
     <section
       ref={sectionRef}
@@ -398,7 +349,7 @@ export default function Journey() {
           <path
             d={geometry.farRange.d}
             fill="currentColor"
-            fillOpacity={0.035}
+            fillOpacity={0.02}
             stroke="currentColor"
             strokeOpacity={0.12}
             strokeLinejoin="round"
@@ -406,10 +357,34 @@ export default function Journey() {
         </svg>
       )}
 
+      {geometry?.heroLayers.map((layer, index) => (
+        <svg
+          key={index}
+          ref={(el) => {
+            heroLayerRefs.current[index][0] = el;
+          }}
+          className="pointer-events-none absolute top-0 left-0 overflow-visible"
+          width={geometry.size.u}
+          height={geometry.size.h}
+          aria-hidden="true"
+        >
+          <path
+            d={layer.d}
+            fill="currentColor"
+            fillOpacity={index ? 0.03 : 0.018}
+            stroke="currentColor"
+            strokeOpacity={index ? 0.22 : 0.14}
+            strokeLinejoin="round"
+            className="hero-range"
+            style={{ animationDelay: `${index * 180}ms` }}
+          />
+        </svg>
+      ))}
+
       <div
         ref={trackRef}
         className="absolute inset-y-0 left-0 will-change-transform"
-        style={{ width: "calc(var(--u) * 2 + var(--U) * 2.8)" }}
+        style={{ width: cssX(track.end) }}
       >
         {geometry && (
           <svg
@@ -419,17 +394,17 @@ export default function Journey() {
             aria-hidden="true"
           >
             <defs>
-              {/* Fade the mountain in from the valley instead of a hard edge. */}
+              {/* The mountain gets darker towards the top. */}
               <linearGradient
-                id="ridge-fade"
+                id="mountain-fade"
                 gradientUnits="userSpaceOnUse"
-                x1={geometry.ridgeFill.startX}
-                x2={geometry.ridgeFill.startX + geometry.size.u * 0.3}
-                y1={0}
-                y2={0}
+                x1={0}
+                x2={0}
+                y1={geometry.size.h * 0.12}
+                y2={geometry.size.h}
               >
-                <stop offset="0" stopColor="currentColor" stopOpacity={0} />
-                <stop offset="1" stopColor="currentColor" stopOpacity={0.05} />
+                <stop offset="0" stopColor="currentColor" stopOpacity={0.035} />
+                <stop offset="1" stopColor="currentColor" stopOpacity={0} />
               </linearGradient>
               <linearGradient
                 ref={featherRef}
@@ -463,50 +438,37 @@ export default function Journey() {
               </clipPath>
             </defs>
 
-            <g ref={topoRef}>
-              {geometry.peaks.map((peak) =>
-                peak.contours.map((contour, ring) => {
-                  const index = contourIndex++;
-                  return (
-                    <path
-                      key={`${peak.name}-${ring}`}
-                      ref={(el) => {
-                        contourRefs.current[index] = el;
-                      }}
-                      d={closedSmoothPath(contour.base)}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeOpacity={contour.index ? 0.32 : 0.14}
-                      strokeWidth={contour.index ? 1.2 : 1}
-                      className="topo-contour"
-                      style={{
-                        animationDelay: `${(peak.contours.length - ring) * 70}ms`,
-                      }}
-                    />
-                  );
-                }),
-              )}
-            </g>
-
+            {/* The ground under the trail feathers out ahead of the hiker. */}
             <path
-              ref={gpsRef}
-              fill="none"
-              stroke="#c43a30"
-              strokeOpacity={0.7}
-              strokeWidth={1.4}
-              strokeDasharray="2 5"
-              strokeLinecap="round"
-            />
-
-            {/* The mountain body feathers out ahead of the hiker. */}
-            <path
-              d={geometry.ridgeFill.d}
-              fill="url(#ridge-fade)"
+              d={geometry.mountain}
+              fill="url(#mountain-fade)"
               mask="url(#journey-feather)"
             />
 
             <g clipPath="url(#journey-reveal)">
-
+              {geometry.altitudes.map((line) => (
+                <g key={line.altitude}>
+                  <line
+                    x1={line.x1}
+                    x2={line.x2}
+                    y1={line.y}
+                    y2={line.y}
+                    stroke="currentColor"
+                    strokeOpacity={0.14}
+                    strokeDasharray="2 6"
+                  />
+                  <text
+                    x={line.x1}
+                    y={line.y - 6}
+                    fontSize={10}
+                    fill="currentColor"
+                    fillOpacity={0.4}
+                    className="font-mono"
+                  >
+                    {line.altitude.toLocaleString("en-US")} m
+                  </text>
+                </g>
+              ))}
               <path
                 d={geometry.detour}
                 fill="none"
@@ -608,32 +570,26 @@ export default function Journey() {
           </svg>
         )}
 
-        {geometry && (
-          <div ref={peakLabelsRef} className="absolute inset-0">
-            <PeakLabels
-              peaks={geometry.peaks.map((peak) => ({
-                name: peak.name,
-                altitude: peak.altitude,
-                x: peak.center.x,
-                y: peak.center.y,
-              }))}
-            />
-          </div>
-        )}
-
         <HeroPanel />
-        <Gear />
-        <PackingPanel />
+        <StackPanel />
         <ClimbPanel />
         <SummitPanel />
       </div>
 
-      {/* Live coordinates that follow the cursor on the map. */}
-      <div
-        ref={readoutRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-0 rounded-sm bg-(--ink) px-2 py-1 font-mono text-[10px] whitespace-pre text-(--paper) opacity-0 transition-opacity duration-200"
-      />
+      {/* Peak names ride on their hero layer but sit above the track. */}
+      {geometry?.heroLayers.map((layer, index) => (
+        <div
+          key={index}
+          ref={(el) => {
+            heroLayerRefs.current[index][1] = el;
+          }}
+          className="pointer-events-none absolute inset-0 *:pointer-events-auto"
+        >
+          {layer.labels.map((label) => (
+            <HeroPeakLabel key={label.peak.name} {...label} />
+          ))}
+        </div>
+      ))}
 
       {/* Soft fade on the right edge, where the hiker is heading. */}
       <div className="pointer-events-none absolute inset-y-0 right-0 w-[6vw] bg-linear-to-l from-(--paper) to-transparent" />

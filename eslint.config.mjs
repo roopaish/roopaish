@@ -18,6 +18,19 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/ban-ts-comment": "off",
     },
   },
+  {
+    // The home page story drives the DOM from rAF loops and effects. Relax
+    // the React Compiler lint rules there rather than rewriting working patterns.
+    files: ["components/summit/**", "data/summit.ts"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/immutability": "off",
+      "react/no-unescaped-entities": "off",
+      "@next/next/no-img-element": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

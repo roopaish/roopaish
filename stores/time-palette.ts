@@ -6,9 +6,9 @@ export const palettes: Record<
   PaletteId,
   { paper: string; ink: string; label: string }
 > = {
-  dawn: { paper: "#f7f1e8", ink: "#1f1a14", label: "early morning" },
-  day: { paper: "#f5f5f2", ink: "#111111", label: "daytime" },
-  dusk: { paper: "#f3e6dc", ink: "#2b1c16", label: "evening" },
+  dawn: { paper: "#ffffff", ink: "#1f1a14", label: "early morning" },
+  day: { paper: "#ffffff", ink: "#111111", label: "daytime" },
+  dusk: { paper: "#fffdfb", ink: "#2b1c16", label: "evening" },
   night: { paper: "#121211", ink: "#ecebe6", label: "night" },
 };
 

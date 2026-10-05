@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./summit.css";
 
 @custom-variant dark (&:is(.dark *));
 @source inline('{sm:,md:,lg:,xl:,}grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}');
@@ -19,64 +20,70 @@
 /* Homepage palette, updated from the visitor's clock (see time-palette-sync).
    Accents come from Nepali prayer flags. */
 :root {
-  --paper: #f5f5f2;
+  --paper: #ffffff;
   --ink: #111111;
 }
 
 /* Thread section: content fades in once the pen has drawn past it. */
 .journey [data-shown] {
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .journey [data-shown="false"] {
   opacity: 0;
-  filter: blur(6px);
 }
 
-/* Packing list lines stay visible; only the checkbox ticks when reached. */
-.journey .packing-item[data-shown] {
+/* Stack timeline: when the hiker reaches a stop, its dot fills, the stick
+   grows up from the trail and the card pops in on top. */
+.journey .stack-stop[data-shown] {
   opacity: 1;
-  filter: none;
 }
 
-.packing-box {
+.stack-dot {
   transition:
-    background-color 0.3s,
-    border-color 0.3s;
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    scale 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.packing-box svg {
+.stack-stick {
+  transform-origin: bottom;
+  transition: scale 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.stack-card {
   transition:
-    opacity 0.3s,
-    scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity 0.35s cubic-bezier(0.23, 1, 0.32, 1) 0.12s,
+    scale 0.35s cubic-bezier(0.23, 1, 0.32, 1) 0.12s,
+    translate 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.packing-item[data-shown="true"] .packing-box {
-  background-color: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
+.stack-stop[data-shown="true"] .stack-dot {
+  background-color: #c43a30;
+  border-color: #c43a30;
+  scale: 1.15;
 }
 
-.packing-item[data-shown="false"] .packing-box svg {
+.stack-stop[data-shown="false"] .stack-stick {
+  scale: 1 0;
+}
+
+.stack-stop[data-shown="false"] .stack-card {
   opacity: 0;
-  scale: 0.3;
-}
-
-@keyframes topo-in {
-  from {
-    opacity: 0;
-  }
-}
-
-.topo-contour {
-  animation: topo-in 0.9s ease-out backwards;
+  scale: 0.96;
+  transition-delay: 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .topo-contour {
-    animation: none;
+  .journey [data-shown] {
+    transition: opacity 0.2s ease;
+  }
+
+  .stack-dot,
+  .stack-stick,
+  .stack-card {
+    transition: none;
   }
 }
 
@@ -313,4 +320,21 @@ body {
 
 button {
   @apply cursor-pointer;
+}
+
+@keyframes hero-range-in {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+
+.hero-range {
+  animation: hero-range-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-range {
+    animation: none;
+  }
 }
