@@ -1,10 +1,17 @@
 export type ProductPlatform = "ios" | "android" | "web";
+export type ProductFeature = {
+  icon: "cart" | "payments" | "account" | "responsive" | "code";
+  text: string;
+};
 export type ProductLaunchedItem = {
   name: string;
   description: string;
   links: { platform: ProductPlatform; url: string; comingSoon?: boolean }[];
   image: string;
   images: string[];
+  /** Source code, when it is public. */
+  code?: string;
+  features?: ProductFeature[];
 };
 
 export const projects: ProductLaunchedItem[] = [
@@ -59,6 +66,13 @@ export const projects: ProductLaunchedItem[] = [
       "/ecom/product-detials.png",
       "/ecom/checkout.png",
       "/ecom/manage-account.png",
+    ],
+    features: [
+      { icon: "cart", text: "Product catalog & search" },
+      { icon: "payments", text: "Stripe payments & webhooks" },
+      { icon: "account", text: "User accounts & order management" },
+      { icon: "responsive", text: "Responsive design (desktop & mobile)" },
+      { icon: "code", text: "Built with Next.js 15 + Tailwind CSS" },
     ],
     links: [
       {

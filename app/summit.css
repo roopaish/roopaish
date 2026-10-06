@@ -1,0 +1,829 @@
+/* Styles for the home page (components/summit): theme tokens, the scroll story's
+   reveals and animations, prayer flags, wood tiles, sticker frames, keyboard. */
+
+@theme inline {
+  --font-story: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
+  --font-deva: var(--font-deva-face), var(--font-display-face), serif;
+  --font-hand: var(--font-hand-face), cursive;
+  --color-cursor: var(--cursor);
+  --color-cursor-foreground: var(--cursor-foreground);
+  --color-cursor-border: var(--cursor-border);
+}
+
+/* Story reveals: the scroll loop sets data-shown once the thread reaches an
+   element's data-at position. Only transform is used, so layout translates
+   (Tailwind's translate-*) are left alone. */
+.reveal {
+  transition:
+    opacity 0.9s ease-out,
+    filter 0.9s ease-out,
+    transform 0.9s cubic-bezier(0.22, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+/* Out of focus until the thread arrives, then it sharpens into place. */
+.reveal:not([data-shown]) {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(0.5rem);
+  transition-delay: 0s;
+}
+
+/* The git graph's words and dots come in quicker than the rest of the story. */
+.reveal.git-reveal {
+  transition-duration: 0.45s;
+}
+
+/* A git branch draws itself once its graph is shown (the scroll loop, or the
+   phone's observer, sets data-shown on the graph). */
+.git-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--git-time, 0.7s) cubic-bezier(0.45, 0, 0.3, 1) var(--git-delay, 0s);
+}
+
+[data-shown] .git-draw {
+  stroke-dashoffset: 0;
+}
+
+@keyframes float-object {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+
+@keyframes draw-string {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Hanging from the thread: a slow swing pivoting at the hands. */
+@keyframes hang {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+/* Fade up into place; used for the intro so it runs on time even before JS. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Mostly dim, with a brief shine now and then, so only a few glow at once. */
+@keyframes twinkle-rare {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  6% {
+    opacity: 0.9;
+  }
+  14% {
+    opacity: 0.18;
+  }
+}
+
+/* Tiny stars in the dark of the fall, flickering at their own pace. */
+@keyframes star-flicker {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  55% {
+    opacity: 0.35;
+  }
+  70% {
+    opacity: 0.9;
+  }
+}
+
+/* Headings are Newsreader at weight 500, like the reference (utilities such as
+   font-semibold still win, being in a later layer). */
+@layer base {
+  .font-story {
+    font-weight: 500;
+  }
+}
+
+@utility animate-hang {
+  animation: hang 3.2s ease-in-out infinite;
+  transform-origin: 57% 20%;
+}
+
+@utility animate-reveal {
+  animation: reveal 0.7s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+}
+
+@utility animate-twinkle {
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+@utility animate-twinkle-rare {
+  animation: twinkle-rare 7s ease-in-out infinite;
+}
+
+@utility animate-spin-slow {
+  animation: spin-slow 9s linear infinite;
+}
+
+@utility animate-star-flicker {
+  animation: star-flicker 1s ease-in-out infinite;
+}
+
+@utility animate-float-object {
+  animation: float-object 5s ease-in-out infinite;
+}
+
+@utility animate-draw-string {
+  animation: draw-string 3.8s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summit-theme *,
+  .summit-theme *::before,
+  .summit-theme *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+
+
+/* Design tokens mapped onto this site's time-of-day palette (--paper / --ink
+   are set by TimePaletteSync) and prayer-flag red. */
+.summit-theme {
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --muted: color-mix(in oklab, var(--ink) 6%, var(--paper));
+  --muted-foreground: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --border: color-mix(in oklab, var(--ink) 22%, var(--paper));
+  --cursor: #111111;
+  --cursor-foreground: #ffffff;
+  --cursor-border: #4a4a48;
+  background-color: var(--paper);
+  color: var(--ink);
+  transition: background-color 0.7s, color 0.7s;
+}
+
+/* Prayer flags (lungta) hung from the trail. The scroll loop sets data-shown
+   once the trail reaches them. */
+.prayer-flag {
+  width: 13px;
+  height: 17px;
+  transform-origin: top center;
+  transition: opacity 0.5s ease-out, scale 0.5s cubic-bezier(0.22, 0.7, 0.2, 1);
+  transition-delay: var(--flag-delay, 0s);
+}
+
+.prayer-flag:not([data-shown]) {
+  opacity: 0;
+  scale: 1 0.2;
+  transition-delay: 0s;
+}
+
+.prayer-flag > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: top center;
+  animation: flag-sway 2.6s ease-in-out infinite alternate;
+  animation-delay: var(--flag-sway, 0s);
+}
+
+@keyframes flag-sway {
+  from {
+    transform: rotate(-7deg) skewX(-5deg);
+  }
+  to {
+    transform: rotate(7deg) skewX(5deg);
+  }
+}
+
+
+/* Project frames: black-and-white die-cut stickers, repeated. */
+.sticker-frame {
+  background-color: #ebe8e1;
+  background-image: url("/summit/stickers.svg");
+  background-size: 300px 300px;
+}
+
+/* Scrabble-style wooden tiles for the "WORKS" heading, and the same wood as a
+   rounded board behind each project's stickers. */
+.wood-tile,
+.wood-board,
+.wood-drawer,
+.wood-chip,
+.wood-desk,
+.wood-plank {
+  --wood:
+    radial-gradient(ellipse 18% 9% at 72% 30%, rgb(90 52 20 / 0.28), transparent 70%),
+    repeating-linear-gradient(94deg, rgb(70 38 12 / 0.1) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(86deg, rgb(255 244 214 / 0.14) 0 1px, transparent 1px 13px),
+    linear-gradient(145deg, #e8c48a, #cf9a58 55%, #b9823f);
+  background: var(--wood);
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -5px 0 rgb(80 40 10 / 0.3),
+    inset 2px 0 0 rgb(255 244 214 / 0.25),
+    0 7px 0 #8a5a28,
+    0 14px 20px rgb(0 0 0 / 0.25);
+}
+
+/* A shelf plank the CD cases stand on. */
+.wood-plank {
+  border-radius: 3px;
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -2px 0 rgb(80 40 10 / 0.3),
+    0 5px 8px rgb(0 0 0 / 0.4);
+}
+
+/* A project card: wood all the way across, stickers stuck on top of it (the
+   transparent sticker sheet), and the picture on top of those. */
+.wood-board {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: clamp(14px, 3vw, 28px);
+  background:
+    url("/summit/stickers-clear.svg") 0 0 / 300px 300px,
+    var(--wood);
+}
+
+/* The drawer that slides out under a card's board. */
+.wood-drawer {
+  border-radius: 0 0 22px 22px;
+  /* square at the top, shaded where the board above overhangs it */
+  background:
+    linear-gradient(to bottom, rgb(0 0 0 / 0.4), transparent 44px),
+    var(--wood);
+  box-shadow:
+    inset 2px 0 0 rgb(255 244 214 / 0.25),
+    inset 0 -5px 0 rgb(80 40 10 / 0.3),
+    0 7px 0 #8a5a28,
+    0 14px 20px rgb(0 0 0 / 0.25);
+}
+
+/* The inside of the drawer: the same wood, only darker. */
+.wood-recess {
+  background:
+    repeating-linear-gradient(94deg, rgb(0 0 0 / 0.14) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(86deg, rgb(255 220 170 / 0.05) 0 1px, transparent 1px 13px),
+    linear-gradient(145deg, #7d5126, #653f1b 55%, #4f3114);
+  box-shadow:
+    inset 0 14px 14px -6px rgb(0 0 0 / 0.6),
+    inset 0 -1px 0 rgb(255 220 170 / 0.18);
+}
+
+/* The small screenshot switchers under a card: the same wood, stickers and
+   picture, in miniature. */
+.wood-chip {
+  border-radius: 12px;
+  background:
+    url("/summit/stickers-clear.svg") 0 0 / 130px 130px,
+    var(--wood);
+  box-shadow:
+    inset 0 1px 0 rgb(255 244 214 / 0.55),
+    inset 0 -3px 0 rgb(80 40 10 / 0.3),
+    0 4px 0 #8a5a28,
+    0 8px 12px rgb(0 0 0 / 0.2);
+}
+
+.wood-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition:
+    translate 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    scale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s;
+}
+
+.wood-tile:hover {
+  translate: 0 -6px;
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -5px 0 rgb(80 40 10 / 0.3),
+    inset 2px 0 0 rgb(255 244 214 / 0.25),
+    0 13px 0 #8a5a28,
+    0 22px 26px rgb(0 0 0 / 0.28);
+}
+
+/* Held: it follows the pointer (no translate transition), lifted and a touch bigger. */
+.wood-tile[data-dragging="true"] {
+  z-index: 20;
+  cursor: grabbing;
+  scale: 1.1;
+  transition:
+    scale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s;
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -5px 0 rgb(80 40 10 / 0.3),
+    inset 2px 0 0 rgb(255 244 214 / 0.25),
+    0 16px 0 #8a5a28,
+    0 30px 34px rgb(0 0 0 / 0.35);
+}
+
+.wood-letter {
+  font-weight: 700;
+  line-height: 1;
+  color: #5a3510;
+  text-shadow:
+    0 1px 0 rgb(255 244 214 / 0.55),
+    0 -1px 0 rgb(60 30 5 / 0.35);
+}
+
+.wood-points {
+  position: absolute;
+  right: 9%;
+  bottom: 7%;
+  font-size: 0.28em;
+  font-weight: 700;
+  color: #5a3510;
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prayer-flag > span,
+  .kb-char {
+    animation: none;
+  }
+}
+
+/* A minimal QWERTY keyboard that types the greeting once. */
+.kb {
+  --g: 1.4%;
+  --key: calc((100% - 10 * var(--g)) / 10.5);
+  container-type: inline-size;
+  padding: 2.4%;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--ink) 4%, var(--paper));
+  border: 1px solid color-mix(in oklab, var(--ink) 18%, var(--paper));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    0 22px 34px -16px rgb(0 0 0 / 0.2);
+}
+
+/* Where the cable leaves the case. */
+/* Phones: the display shares its row with the day / night key. */
+.kb-head {
+  display: flex;
+  gap: var(--g);
+  margin-bottom: 3.2%;
+}
+
+/* The row is as tall as the display, and the key stretches to exactly that
+   (no padding, so the icon can never make it taller). */
+.kb-head .kb-screen {
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  min-height: 2.1em;
+  margin-bottom: 0;
+}
+
+.kb-head > .kb-key {
+  flex: 0 0 calc(var(--key) * 1.2);
+  aspect-ratio: auto;
+  align-self: stretch;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* A key that is a real button presses down when tapped. */
+button.kb-key:active {
+  translate: 0 3px;
+  box-shadow: 0 0 0 var(--edge);
+}
+
+.kb-port {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 34px;
+  height: 7px;
+  translate: -50% -50%;
+  border-radius: 3px;
+  background: var(--ink);
+}
+
+/* A little display along the top of the case: the greeting is typed here. */
+.kb-screen {
+  display: flex;
+  align-items: center;
+  height: 2.1em;
+  margin-bottom: 3.2%;
+  padding: 0 4%;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--ink) 7%, var(--paper));
+  border: 1px solid color-mix(in oklab, var(--ink) 12%, var(--paper));
+  font-family: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(13px, 4.4cqw, 24px);
+  white-space: pre;
+  overflow: hidden;
+}
+
+/* Each letter eases in as it is typed: it rises, sharpens and fades up. */
+.kb-char {
+  display: inline-block;
+  white-space: pre;
+  animation: kb-char-in 0.24s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+}
+
+@keyframes kb-char-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4em);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.kb-caret {
+  display: inline-block;
+  width: 0.08em;
+  height: 1.1em;
+  margin-left: 0.1em;
+  background: #c43a30;
+  animation: kb-blink 1s steps(1) infinite;
+}
+
+@keyframes kb-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.kb-row {
+  position: relative;
+  z-index: var(--row, 0);
+  display: flex;
+  gap: var(--g);
+  width: 100%;
+  margin-left: calc(var(--indent, 0) * (var(--key) + var(--g)));
+}
+
+.kb-key {
+  --edge: color-mix(in oklab, var(--ink) 26%, var(--paper));
+  flex: 0 0 var(--key);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 22%;
+  border: 1px solid color-mix(in oklab, var(--ink) 22%, var(--paper));
+  background: var(--paper);
+  color: color-mix(in oklab, var(--ink) 82%, var(--paper));
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(9px, 3.6cqw, 18px);
+  line-height: 1;
+  box-shadow: 0 3px 0 var(--edge);
+  transition:
+    translate 0.06s,
+    box-shadow 0.06s,
+    background-color 0.08s,
+    color 0.08s;
+}
+
+.kb-key[data-down="true"] {
+  translate: 0 3px;
+  box-shadow: 0 0 0 var(--edge);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.kb-space {
+  flex: 0 0 calc(5 * var(--key) + 4 * var(--g));
+  aspect-ratio: 5.7;
+  border-radius: 12px;
+}
+
+/* Phone menu: a "dynamic island" of liquid glass that springs out from the
+   corner. Closed, it is nothing but two dark bars; open, the corner pill grows
+   into a translucent, blurred pane with a bright rim and a soft highlight. */
+.island {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.077 22%, 1.121 24.6%, 1.149 27.3%, 1.159 29.2%, 1.154 31.1%, 1.128 34.4%, 1.04 41%, 1.005 45.7%, 0.987 51.4%, 0.987 57.5%, 1.004 70%, 1);
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: 0 0 0 rgb(0 0 0 / 0);
+  -webkit-backdrop-filter: blur(0) saturate(1);
+  backdrop-filter: blur(0) saturate(1);
+  transform-origin: top right;
+  transition:
+    width 0.7s var(--spring),
+    height 0.7s var(--spring),
+    border-radius 0.5s var(--spring),
+    background-color 0.4s,
+    border-color 0.4s,
+    box-shadow 0.5s,
+    backdrop-filter 0.5s,
+    -webkit-backdrop-filter 0.5s;
+}
+
+/* The soft specular highlight across the top-left of the glass. */
+.island::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(90% 55% at 14% 0%, rgb(255 255 255 / 0.7), transparent 62%),
+    radial-gradient(60% 40% at 100% 100%, rgb(255 255 255 / 0.28), transparent 70%),
+    linear-gradient(160deg, rgb(255 255 255 / 0.25), rgb(255 255 255 / 0) 45%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+@media (min-width: 640px) {
+  .island {
+    right: 2rem;
+  }
+}
+
+.island[data-open="true"] {
+  width: min(calc(100vw - 2.5rem), 340px);
+  height: 322px;
+  border-radius: 32px;
+  border-color: rgb(255 255 255 / 0.7);
+  /* mostly clear: the page shows through, lightly brightened */
+  background: color-mix(in oklab, var(--paper) 22%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(2.2) brightness(1.08) contrast(1.05);
+  backdrop-filter: blur(10px) saturate(2.2) brightness(1.08) contrast(1.05);
+  box-shadow:
+    inset 3px 4px 7px -3px rgb(255 255 255 / 0.95),
+    inset -3px -4px 8px -4px rgb(255 255 255 / 0.4),
+    inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    inset -8px -10px 18px -12px rgb(0 0 0 / 0.14),
+    0 24px 50px -18px rgb(0 0 0 / 0.35);
+}
+
+.island[data-open="true"]::before {
+  opacity: 1;
+}
+
+.island-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+}
+
+.island-links {
+  position: absolute;
+  inset: 52px 10px 10px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.island-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  height: 56px;
+  border-radius: 22px;
+  text-align: left;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateX(36px) scale(0.94);
+  transition:
+    opacity 0.12s,
+    transform 0.12s,
+    background-color 0.2s;
+}
+
+.island[data-open="true"] .island-link {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.35s calc(var(--i) * 60ms + 160ms),
+    transform 0.7s var(--spring) calc(var(--i) * 60ms + 160ms),
+    background-color 0.2s;
+}
+
+.island-link:active {
+  background-color: color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .island,
+  .island::before,
+  .island-link {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* Header reveal: each piece blurs into focus and rises a little. "backwards"
+   holds the hidden state through the delay and leaves nothing behind after. */
+@keyframes blur-reveal {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@utility animate-blur-reveal {
+  animation: blur-reveal 0.8s cubic-bezier(0.22, 0.7, 0.2, 1) backwards;
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.9s ease-out backwards;
+}
+
+/* Liquid-glass pill buttons: mostly clear, blurred and brightened, with a
+   bright rim and a soft highlight (the same glass as the phone menu). */
+.glass-button {
+  position: relative;
+  overflow: hidden;
+  /* the highlight is part of the background, so it sits under the label */
+  background:
+    radial-gradient(90% 90% at 14% 0%, rgb(255 255 255 / 0.65), transparent 62%),
+    linear-gradient(160deg, rgb(255 255 255 / 0.25), rgb(255 255 255 / 0) 50%),
+    color-mix(in oklab, var(--paper) 22%, transparent);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  color: var(--ink);
+  -webkit-backdrop-filter: blur(10px) saturate(2.2) brightness(1.08) contrast(1.05);
+  backdrop-filter: blur(10px) saturate(2.2) brightness(1.08) contrast(1.05);
+  box-shadow:
+    inset 3px 4px 7px -3px rgb(255 255 255 / 0.95),
+    inset -3px -4px 8px -4px rgb(255 255 255 / 0.4),
+    inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    inset -8px -10px 18px -12px rgb(0 0 0 / 0.14),
+    0 14px 30px -14px rgb(0 0 0 / 0.35);
+  /* no transition on translate: the magnet (magnet.ts) drives it on a spring */
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s;
+}
+
+.glass-button:hover {
+  box-shadow:
+    inset 3px 4px 7px -3px rgb(255 255 255 / 1),
+    inset -3px -4px 8px -4px rgb(255 255 255 / 0.5),
+    inset 0 0 0 1px rgb(255 255 255 / 0.3),
+    inset -8px -10px 18px -12px rgb(0 0 0 / 0.14),
+    0 20px 36px -14px rgb(0 0 0 / 0.4);
+}
+
+.glass-button:active {
+  transform: scale(0.97);
+}
+
+/* A smoked, near-black variant of the glass button (the footer's email). */
+.glass-button.glass-dark,
+.glass-button[data-active="true"] {
+  background:
+    radial-gradient(90% 90% at 14% 0%, rgb(255 255 255 / 0.28), transparent 62%),
+    linear-gradient(160deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0) 50%),
+    rgb(10 10 10 / 0.86);
+  border-color: rgb(255 255 255 / 0.3);
+  color: #fff;
+  box-shadow:
+    inset 3px 4px 7px -3px rgb(255 255 255 / 0.5),
+    inset -3px -4px 8px -4px rgb(255 255 255 / 0.12),
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 14px 30px -14px rgb(0 0 0 / 0.5);
+}
+
+.glass-button.glass-dark:hover,
+.glass-button[data-active="true"]:hover {
+  box-shadow:
+    inset 3px 4px 7px -3px rgb(255 255 255 / 0.6),
+    inset -3px -4px 8px -4px rgb(255 255 255 / 0.16),
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    0 20px 36px -14px rgb(0 0 0 / 0.55);
+}
+
+
+/* The bookcase's back panel: warm light pooling under the lamps. */
+.shelf-lights {
+  background:
+    radial-gradient(ellipse 22% 38% at 30% 0%, rgb(255 214 150 / 0.4), transparent 70%),
+    radial-gradient(ellipse 22% 38% at 72% 0%, rgb(255 214 150 / 0.4), transparent 70%);
+}
+
+/* A board the cards stand on: a thick plank with a lit front edge. */
+.shelf-board {
+  height: 18px;
+  background:
+    repeating-linear-gradient(92deg, rgb(60 30 8 / 0.18) 0 2px, transparent 2px 11px),
+    linear-gradient(to bottom, #d9a566, #b9823f 55%, #8a5a28);
+  box-shadow:
+    inset 0 2px 0 rgb(255 236 200 / 0.6),
+    0 10px 14px rgb(0 0 0 / 0.45);
+}
+
+/* The plaque in front of a card: a lighter wood block with a number tab. */
+.shelf-plaque {
+  background:
+    repeating-linear-gradient(94deg, rgb(70 38 12 / 0.1) 0 2px, transparent 2px 9px),
+    linear-gradient(145deg, #e8c48a, #cf9a58 60%, #b9823f);
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -3px 0 rgb(80 40 10 / 0.3),
+    0 6px 10px rgb(0 0 0 / 0.4);
+}
+
+/* The shelf's vines hang from the top edge and sway very slightly. */
+.vine-sway {
+  transform-origin: top center;
+  animation: vine-sway 7s ease-in-out infinite alternate;
+}
+@keyframes vine-sway {
+  from { rotate: -1.2deg; }
+  to { rotate: 1.2deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vine-sway { animation: none; }
+}
+
+/* The desk an open project's pictures sit on: the same wood as the shelf's
+   boards, laid flat. */
+.wood-desk {
+  background: var(--wood);
+  box-shadow:
+    inset 0 2px 0 rgb(255 244 214 / 0.55),
+    inset 0 -4px 0 rgb(80 40 10 / 0.3),
+    inset 0 0 40px rgb(80 40 10 / 0.25),
+    0 14px 22px rgb(0 0 0 / 0.4);
+}

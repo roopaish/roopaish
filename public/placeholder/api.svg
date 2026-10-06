@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Placeholder: API nodes wired to a database. -->
+  <defs>
+    <linearGradient id="db" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3f6fe0"/><stop offset=".45" stop-color="#6e9bf7"/><stop offset="1" stop-color="#3659b8"/></linearGradient>
+  </defs>
+  <g stroke="#8a8a99" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M30 34 L56 66"/>
+    <path d="M98 34 L72 66"/>
+    <path d="M64 20 L64 62"/>
+  </g>
+  <path d="M38 76v24c0 7 12 12 26 12s26-5 26-12V76z" fill="url(#db)"/>
+  <path d="M38 88c0 7 12 12 26 12s26-5 26-12" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>
+  <ellipse cx="64" cy="76" rx="26" ry="10" fill="#9bbcfb"/>
+  <ellipse cx="64" cy="76" rx="18" ry="5.5" fill="#6e9bf7" opacity=".6"/>
+  <circle cx="30" cy="30" r="11" fill="#f4c542"/>
+  <circle cx="98" cy="30" r="11" fill="#2fb47c"/>
+  <circle cx="64" cy="18" r="11" fill="#e5484d"/>
+  <g fill="#fff" fill-opacity=".9">
+    <circle cx="30" cy="30" r="3.5"/><circle cx="98" cy="30" r="3.5"/><circle cx="64" cy="18" r="3.5"/>
+  </g>
+</svg>

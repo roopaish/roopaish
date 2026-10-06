@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./summit.css";
 
 @custom-variant dark (&:is(.dark *));
 @source inline('{sm:,md:,lg:,xl:,}grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}');
@@ -8,7 +9,81 @@
 @theme {
   --font-inter: "var(--font-inter)", sans-serif;
   --font-manrope: "var(--font-manrope)", sans-serif;
-  --font-playful: "var(--font-playful)", sans-serif;
+}
+
+@theme inline {
+  --font-display: var(--font-display-face), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+}
+
+/* Homepage palette, set by the visitor (see time-palette-sync).
+   Accents come from Nepali prayer flags. */
+:root {
+  --paper: #ffffff;
+  --ink: #111111;
+}
+
+/* Thread section: content fades in once the pen has drawn past it. */
+.journey [data-shown] {
+  transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.journey [data-shown="false"] {
+  opacity: 0;
+}
+
+/* Stack timeline: when the hiker reaches a stop, its dot fills, the stick
+   grows up from the trail and the card pops in on top. */
+.journey .stack-stop[data-shown] {
+  opacity: 1;
+}
+
+.stack-dot {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    scale 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.stack-stick {
+  transform-origin: bottom;
+  transition: scale 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.stack-card {
+  transition:
+    opacity 0.35s cubic-bezier(0.23, 1, 0.32, 1) 0.12s,
+    scale 0.35s cubic-bezier(0.23, 1, 0.32, 1) 0.12s,
+    translate 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.stack-stop[data-shown="true"] .stack-dot {
+  background-color: #c43a30;
+  border-color: #c43a30;
+  scale: 1.15;
+}
+
+.stack-stop[data-shown="false"] .stack-stick {
+  scale: 1 0;
+}
+
+.stack-stop[data-shown="false"] .stack-card {
+  opacity: 0;
+  scale: 0.96;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey [data-shown] {
+    transition: opacity 0.2s ease;
+  }
+
+  .stack-dot,
+  .stack-stick,
+  .stack-card {
+    transition: none;
+  }
 }
 
 html.lenis,
@@ -244,4 +319,21 @@ body {
 
 button {
   @apply cursor-pointer;
+}
+
+@keyframes hero-range-in {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+
+.hero-range {
+  animation: hero-range-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-range {
+    animation: none;
+  }
 }

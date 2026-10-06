@@ -4,7 +4,13 @@ import EasterEggs from "@/components/fun";
 import SmoothScroll from "@/components/smooth-scroll";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
-import { Ephesis, Inter, Manrope } from "next/font/google";
+import {
+  Inter,
+  Caveat,
+  JetBrains_Mono,
+  Manrope,
+  Newsreader,
+} from "next/font/google";
 import "simplebar-react/dist/simplebar.min.css";
 import "./globals.css";
 
@@ -20,10 +26,22 @@ const fontManrope = Manrope({
   display: "swap",
 });
 
-const fontPlayful = Ephesis({
+const fontDisplay = Newsreader({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-playful",
+  style: ["normal", "italic"],
+  variable: "--font-display-face",
+  display: "swap",
+});
+
+const fontHand = Caveat({
+  subsets: ["latin"],
+  variable: "--font-hand-face",
+  display: "swap",
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono-face",
   display: "swap",
 });
 
@@ -45,7 +63,9 @@ export default function RootLayout({
           ${fontInter.variable}
           ${fontInter.className}
           ${fontManrope.variable}
-          ${fontPlayful.variable}
+          ${fontDisplay.variable}
+          ${fontMono.variable}
+          ${fontHand.variable}
           antialiased`}
       >
         <SmoothScroll />
