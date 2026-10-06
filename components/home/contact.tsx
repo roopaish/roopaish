@@ -16,7 +16,7 @@ const copy = {
   title: "I'm Rupesh.",
   body: "Usually somewhere in Kathmandu with a laptop and a cup of chiya. Happy to work across any timezone.",
   pitch: "Planning a climb? I'd love to hear about it.",
-  funFact: "Fun fact: TODO — something nobody would guess about you.",
+  funFact: "Fun fact: TODO: something nobody would guess about you.",
 };
 
 // TODO: replace with your real signature (export a single SVG path).

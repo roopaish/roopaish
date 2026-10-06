@@ -3,7 +3,6 @@
 import { siteHandle, summitLinks } from "@/data/summit";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { say } from "./bubbles";
 import { CuriousCursor, PhoneComment } from "./cursor-bubble";
 import { Altimeter } from "./altimeter";
 import { Closing } from "./ending";
@@ -86,12 +85,11 @@ export default function SummitHome() {
 
   // One animation-frame loop runs the whole story. It eases toward the scroll
   // position, so wheel steps become a glide, and then moves the canvas, draws
-  // the thread and reveals whatever the thread has reached — all directly on
+  // the thread and reveals whatever the thread has reached, all directly on
   // the DOM, without asking React to re-render the page every frame.
   useEffect(() => {
     let frame = 0;
     let current = -1;
-    const spoken = new Set<string>();
     const tick = () => {
       const section = storyRef.current;
       const canvas = canvasRef.current;
@@ -110,15 +108,9 @@ export default function SummitHome() {
             const edge = current * CANVAS_TRAVEL_VW + 100 - REVEAL_INSET;
             canvas.querySelectorAll<HTMLElement>("[data-at]").forEach((el) => {
               // Most things reveal as they enter the screen; "thread" ones wait
-              // for the thread itself (the loop's steps, the story comments).
+              // for the thread itself (the git graph, the objects' own lines).
               const shown = (el.dataset["mode"] === "thread" ? tip : edge) >= Number(el.dataset["at"]);
               el.toggleAttribute("data-shown", shown);
-              // Story comments are said once, the first time the thread arrives.
-              const line = el.dataset["say"];
-              if (shown && line && !spoken.has(line)) {
-                spoken.add(line);
-                say(`story:${line}`, line);
-              }
             });
           }
           listeners.current.forEach((listen) => listen(current));

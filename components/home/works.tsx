@@ -181,7 +181,7 @@ export default function Works() {
               transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             >
               <p className="font-mono text-[11px] tracking-wider uppercase opacity-55">
-                {years[project.name] ?? "—"} ·{" "}
+                {years[project.name] ?? "-"} ·{" "}
                 {[isWeb(project) && "web", isMobile(project) && "mobile"]
                   .filter(Boolean)
                   .join(" · ")}
@@ -244,7 +244,7 @@ export default function Works() {
                 style={{ left }}
               >
                 <span className="h-4 w-px bg-current" />
-                {years[item.name] ?? "—"}
+                {years[item.name] ?? "-"}
               </button>
             );
           })}

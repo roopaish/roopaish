@@ -2,11 +2,10 @@
 
 import { art, copy } from "@/data/summit";
 import { cn } from "@/lib/utils";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ChevronUp, Repeat } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { say } from "./bubbles";
 import { Figure } from "./figure";
-import { heart, timeline } from "./scenes";
+import { heart, LearnSequence, timeline } from "./scenes";
 import {
   sampleSegments,
   segmentsPath,
@@ -22,17 +21,78 @@ import { TypingKeyboard } from "./typing-keyboard";
 // ---------------------------------------------------------------------------
 // Mobile: the same story told vertically. The cable leaves the keyboard and
 // weaves down the page between the objects, the years hang off it on little
-// stems, and it ties the habit loop before ending at the work button. Anchor
-// points are read from the laid-out page, so the thread fits any phone.
+// stems, and it runs through the habit's git graph before ending at the work
+// button. Anchor points are read from the laid-out page, so the thread fits
+// any phone.
 
-// Radius (px) of the habit loop on mobile.
-export const MOBILE_LOOP = 70;
+// The habit's git graph on mobile (px, from the graph's top-left). The thread
+// runs down the left as main; a feature branch splits off it with a hotfix
+// branch dipping off that, and they merge back. After the last commit the line
+// forks again, sweeps right and runs back up the right edge to rejoin main
+// above the first commit: the repeat, drawn as part of the same line.
+const GIT_MAIN_X = 10;
+const GIT_FEATURE_X = 32;
+const GIT_FIX_X = 52;
+const GIT_LABEL_X = 72;
+const GIT_LOOP_X = 172;
+const GIT_HEIGHT = 300;
+const GIT_MAIN_ANCHORS: [x: string, y: number][] = [["10px", 6], ["10px", 100], ["10px", 206], ["10px", 244], ["28px", 272], ["90px", 284], [`${GIT_LOOP_X}px`, 278]];
+const GIT_COMMITS = [
+  { x: GIT_MAIN_X, y: 36 },
+  { x: GIT_FEATURE_X, y: 84 },
+  { x: GIT_FEATURE_X, y: 164 },
+  { x: GIT_MAIN_X, y: 206 },
+  { x: GIT_MAIN_X, y: 244 },
+];
+const GIT_FEATURE = `M${GIT_MAIN_X} 48 C${GIT_MAIN_X} 62 ${GIT_FEATURE_X} 58 ${GIT_FEATURE_X} 72 L${GIT_FEATURE_X} 176 C${GIT_FEATURE_X} 194 ${GIT_MAIN_X} 188 ${GIT_MAIN_X} 206`;
+const GIT_FIX = `M${GIT_FEATURE_X} 100 C${GIT_FEATURE_X} 112 ${GIT_FIX_X} 108 ${GIT_FIX_X} 120 L${GIT_FIX_X} 132 C${GIT_FIX_X} 144 ${GIT_FEATURE_X} 140 ${GIT_FEATURE_X} 152`;
+// Up the right-hand lane and back along the top.
+const GIT_LOOP = `M${GIT_LOOP_X} 278 C${GIT_LOOP_X} 258 ${GIT_LOOP_X} 250 ${GIT_LOOP_X} 232 L${GIT_LOOP_X} 16 C${GIT_LOOP_X} -6 ${GIT_LOOP_X - 18} -6 ${GIT_LOOP_X - 36} -6 L36 -6 C20 -6 ${GIT_MAIN_X} -2 ${GIT_MAIN_X} 14`;
+
+// One branch: a hairline svg sitting at the point the branch leaves the thread,
+// so it starts drawing as the thread reaches that point.
+function GitBranch({ d, startY }: { d: string; startY: number }) {
+  const path = { fill: "none", stroke: "currentColor", strokeOpacity: 0.8, strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", pathLength: 1 } as const;
+  return (
+    <svg aria-hidden="true" className="git-graph pointer-events-none absolute left-0 w-full overflow-visible" style={{ top: startY, height: 1 }}>
+      <g transform={`translate(0 ${-startY})`}>
+        <path className="git-draw" d={d} {...path} />
+      </g>
+    </svg>
+  );
+}
+
+function MobileGitGraph() {
+  return (
+    <div className="relative -mx-5 mt-6" style={{ height: GIT_HEIGHT }}>
+      {GIT_MAIN_ANCHORS.map(([x, y]) => <Anchor key={`${x}-${y}`} x={x} y={y} />)}
+      <GitBranch d={GIT_FEATURE} startY={48} />
+      <GitBranch d={GIT_FIX} startY={100} />
+      <GitBranch d={GIT_LOOP} startY={278} />
+      {copy.habit.steps.map((step, index) => {
+        const { x, y } = GIT_COMMITS[index]!;
+        return (
+          <div key={step} className="reveal git-reveal absolute left-0 w-full" style={{ top: y, height: 0 }}>
+            <span className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-foreground bg-background" style={{ left: x, top: 0 }} />
+            <span className="absolute max-w-[5.25rem] -translate-y-1/2 text-[0.8125rem] leading-tight" style={{ left: GIT_LABEL_X, top: 0 }}>{step}</span>
+          </div>
+        );
+      })}
+      <span className="reveal git-reveal absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/80" style={{ left: GIT_FIX_X, top: 126 }} />
+      <ChevronUp aria-hidden="true" className="reveal git-reveal absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background text-foreground/80" style={{ left: GIT_LOOP_X, top: 140 }} />
+      <span className="reveal git-reveal absolute flex -translate-y-1/2 items-center gap-1.5 font-story text-xl italic" style={{ left: GIT_LOOP_X + 14, top: 140 }}>
+        <Repeat aria-hidden="true" className="h-3.5 w-3.5 not-italic text-foreground/60" />
+        {copy.habit.repeat}
+      </span>
+    </div>
+  );
+}
 
 // An object pinned in a mobile block, with the thread passing through its middle.
 function MobileObject({ src, alt, label, style, delay }: { src: string; alt: string; label: string; style: CSSProperties; delay: string }) {
   return (
     <div className="absolute" style={style}>
-      <Figure src={src} alt={alt} label={label} size="sm" delay={delay} />
+      <Figure src={src} alt={alt} label={label} size="sm" delay={delay} autoOpen />
       <span data-anchor className="absolute left-1/2 top-1/2" />
     </div>
   );
@@ -123,21 +183,21 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
       }),
       { rootMargin: "0px 0px -8% 0px", threshold: 0.15 },
     );
-    root.querySelectorAll(".reveal").forEach((el) => io.observe(el));
-    // Story comments, said once each as their moment scrolls up the screen.
-    const talk = new IntersectionObserver(
+    root.querySelectorAll(".reveal:not(.git-reveal)").forEach((el) => io.observe(el));
+    // The git graph follows the thread itself, which is drawn down to ~70% of
+    // the screen, so each branch and commit shows as it passes that line.
+    const trail = new IntersectionObserver(
       (entries) => entries.forEach((e) => {
-        const line = (e.target as HTMLElement).dataset["say"];
-        if (!e.isIntersecting || !line) return;
-        say(`story:${line}`, line);
-        talk.unobserve(e.target);
+        if (!e.isIntersecting) return;
+        e.target.setAttribute("data-shown", "");
+        trail.unobserve(e.target);
       }),
-      { rootMargin: "0px 0px -40% 0px" },
+      { rootMargin: "0px 0px -30% 0px" },
     );
-    root.querySelectorAll("[data-say]").forEach((el) => talk.observe(el));
+    root.querySelectorAll(".git-reveal, .git-graph").forEach((el) => trail.observe(el));
     return () => {
       io.disconnect();
-      talk.disconnect();
+      trail.disconnect();
     };
   }, []);
 
@@ -168,35 +228,34 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         <Anchor x="93%" y="122svh" />
       </div>
 
-      {/* i tinker with a lot of stuff — objects spread out on alternating sides */}
-      <div className="relative h-[1500px]">
-        <span data-say={copy.tinker.say} className="absolute left-0 top-0 h-px w-px" />
+      {/* i tinker with a lot of stuff: objects spread out on alternating sides */}
+      <div className="relative h-[1420px]">
         <MobileObject src={art.laptop} alt="a laptop covered in stickers" label={copy.tinker.laptop} style={{ left: "3%", top: 20 }} delay="0s" />
         <MobileObject src={art.keys} alt="a keyboard" label={copy.tinker.keys} style={{ right: "5%", top: 190 }} delay=".4s" />
         <Anchor x="95%" y={400} />
         <div className="reveal absolute inset-x-0 top-[420px] mx-auto max-w-[17rem] text-center">
           <p className="text-foreground">{copy.tinker.lead}</p>
-          <h2 className="mt-1 whitespace-nowrap font-story text-[2.1rem] leading-tight">{copy.tinker.title}</h2>
+          <h2 className="mt-1 font-story text-[2.1rem] leading-tight">{copy.tinker.title}</h2>
           <p className="mt-1 text-sm text-foreground">{copy.tinker.sub}</p>
         </div>
-        <Anchor x="95%" y={590} />
-        <MobileObject src={art.astronaut} alt="a rocket" label={copy.tinker.camera} style={{ left: "4%", top: 630 }} delay=".8s" />
-        <MobileObject src={art.movies} alt="a clapperboard" label={copy.tinker.movies} style={{ right: "3%", top: 820 }} delay="1.2s" />
-        <MobileObject src={art.nature} alt="pine trees on a hill" label={copy.tinker.nature} style={{ left: "6%", top: 1010 }} delay="1.6s" />
+        <Anchor x="95%" y={620} />
+        <MobileObject src={art.cursor} alt="a selection box with a cursor" label={copy.tinker.design} style={{ left: "4%", top: 660 }} delay=".8s" />
+        <MobileObject src={art.phone} alt="a phone" label={copy.tinker.phone} style={{ right: "3%", top: 850 }} delay="1.2s" />
+        <MobileObject src={art.blocks} alt="three linked blocks" label={copy.tinker.blocks} style={{ left: "6%", top: 1040 }} delay="1.6s" />
+        <MobileObject src={art.server} alt="a small server rack" label={copy.tinker.server} style={{ right: "5%", top: 1230 }} delay="2s" />
       </div>
 
-      {/* but few things have my heart — object above its words, alternating sides */}
+      {/* but few things have my heart: object above its words, alternating sides */}
       <div className="relative px-5 pt-6">
-        <span data-say={copy.heart.say} className="absolute left-0 top-0 h-px w-px" />
         <Anchor x="5%" y={0} />
         <Anchor x="5%" y={110} />
-        <h2 className="reveal text-center font-story text-[2.4rem] leading-none">{copy.heart.mobileTitle[0]}<br />{copy.heart.mobileTitle[1]}</h2>
+        <h2 className="reveal text-center font-story text-[2.4rem] leading-none">{copy.heart.mobileTitle[0]}<br />{copy.heart.mobileTitle[1]}<br />{copy.heart.mobileTitle[2]}</h2>
         {heart.map((h, index) => {
           const right = index % 2 === 1;
           return (
             <div key={h.title} className={cn("reveal relative mt-10 w-[66%]", right && "ml-auto text-right")}>
               <div className={cn("relative w-fit", right && "ml-auto")}>
-                <Figure src={h.src} alt={h.alt} label={h.label} size="sm" delay={`${index * 0.5}s`} />
+                <Figure src={h.src} alt={h.alt} label={h.label} size="sm" delay={`${index * 0.5}s`} autoOpen />
                 <span data-anchor className="absolute left-1/2 top-1/2" />
               </div>
               <p className="font-story text-2xl leading-tight">{h.title}</p>
@@ -210,7 +269,6 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
 
       {/* the years hang off the thread */}
       <div className="relative mt-20 px-5">
-        <span data-say={copy.timeline.say} className="absolute left-0 top-20 h-px w-px" />
         <Anchor x="6%" y={-20} />
         <ol className="relative mt-4 pl-9">
           {timeline.map((stop) => (
@@ -230,29 +288,20 @@ export function MobileStory({ ready, onWork }: { ready: boolean; onWork: () => v
         <div className="reveal mx-auto max-w-[19rem] text-center text-sm leading-snug">
           <p>{copy.timeline.summaryTop}</p>
           <p className="text-foreground">{copy.timeline.summaryBottom}</p>
+          <LearnSequence className="mt-3 flex-wrap justify-center gap-1.5 text-xs" />
         </div>
         <Anchor x="5%" y="calc(100% + 1rem)" />
       </div>
 
-      {/* apparently, i don't know how to leave things alone — tied in a loop */}
+      {/* apparently, i just like turning ideas into working things: a git graph, with the thread as main */}
       <div className="relative mt-16 px-5">
-        <Anchor x="89%" y={-24} />
-        <Anchor x="90%" y={150} />
+        <Anchor x="10px" y={-24} />
         <p className="reveal font-story text-[2.3rem] leading-[1.05]">{copy.habit.title} <span className="text-foreground">{copy.habit.titleMuted}</span></p>
-        <div className="reveal relative mt-4 h-[270px]">
-          <Anchor x="86%" y={205} />
-          <Anchor x="50%" y={230} loop={MOBILE_LOOP} />
-          <span className="absolute -translate-x-1/2 translate-y-3 whitespace-nowrap text-sm" style={{ left: "50%", top: 230 }}>{copy.habit.steps[0]}</span>
-          <span className="absolute -translate-y-1/2 whitespace-nowrap text-sm" style={{ left: `calc(50% + ${MOBILE_LOOP + 10}px)`, top: 230 - MOBILE_LOOP }}>{copy.habit.steps[1]}</span>
-          <span className="absolute -translate-x-1/2 -translate-y-[calc(100%+0.6rem)] whitespace-nowrap text-sm" style={{ left: "50%", top: 230 - 2 * MOBILE_LOOP }}>{copy.habit.steps[2]}</span>
-          <span className="absolute -translate-x-[calc(100%+0.6rem)] -translate-y-1/2 whitespace-nowrap text-sm" style={{ left: `calc(50% - ${MOBILE_LOOP}px)`, top: 230 - MOBILE_LOOP }}>{copy.habit.steps[3]}</span>
-          <span className="absolute -translate-x-1/2 -translate-y-1/2 font-story text-2xl italic" style={{ left: "50%", top: 230 - MOBILE_LOOP }}>{copy.habit.repeat}</span>
-        </div>
+        <MobileGitGraph />
       </div>
 
-      {/* enough autobiography — the thread ends at the button */}
+      {/* enough autobiography: the thread ends at the button */}
       <div className="relative px-5 pb-24 pt-14 text-center">
-        <span data-say={copy.finale.say} className="absolute left-0 top-10 h-px w-px" />
         <Anchor x="94%" y={40} />
         <p className="reveal text-sm text-foreground">{copy.finale.lead}</p>
         <h2 className="reveal mt-2 font-story text-[2.3rem] leading-tight">{copy.finale.mobileTitle[0]}<br />{copy.finale.mobileTitle[1]}</h2>

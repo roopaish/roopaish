@@ -131,7 +131,7 @@ export default function Hero() {
           <h1 className="mx-auto text-3xl md:text-5xl leading-tight font-semibold tracking-[-0.04em] text-black/90 font-manrope">
             <RevealText
               once
-              text={`Hi I'm ${profile.name} — ${profile.role}.`}
+              text={`Hi I'm ${profile.name}, ${profile.role}.`}
             />
             <br />
             <span className="text-black/40">

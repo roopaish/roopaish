@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { type CursorComment } from "./bubbles";
 
 // Phones have no cursor, so the story's comments pop up as a little chat
-// bubble in the bottom corner instead — typed out, then gone.
+// bubble in the bottom corner instead, typed out, then gone.
 export function PhoneComment() {
   const [comment, setComment] = useState<CursorComment | null>(null);
   const [typed, setTyped] = useState("");
@@ -61,7 +61,7 @@ export function PhoneComment() {
 }
 
 // The cursor's comment bubble. It trails the pointer with a touch of easing
-// and says nothing by default — it only speaks when the story or the thing
+// and says nothing by default: it only speaks when the story or the thing
 // under the pointer has something to say, types it out, and fades away.
 export function CuriousCursor({ visible }: { visible: boolean }) {
   const ref = useRef<HTMLDivElement>(null);

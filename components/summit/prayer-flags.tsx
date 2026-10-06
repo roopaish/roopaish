@@ -3,9 +3,9 @@
 import { flagColors } from "@/data/journey";
 import { getThreadSamples } from "./thread";
 
-// Flags hang only on the last stretch of the trail, the run after the habit
-// loop into "let's look at the flags i planted" (canvas vw).
-const STRETCHES: [from: number, to: number][] = [[492, 530]];
+// Flags hang only on the last stretch of the trail, the run after the habit's
+// git graph into "let's look at the flags i planted" (canvas vw).
+const STRETCHES: [from: number, to: number][] = [[494, 512]];
 const SPACING = 4.6;
 
 type Flag = { x: number; y: number; color: string; delay: number };

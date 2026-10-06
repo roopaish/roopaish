@@ -6,10 +6,10 @@ import type { TrackPoint, TrackX } from "@/lib/thread";
 
 // TODO: replace all copy in this file with your own words.
 export const heroCopy = {
-  coordinates: "27.7172° N, 85.3240° E — Kathmandu",
+  coordinates: "27.7172° N, 85.3240° E, Kathmandu",
   name: "Rupesh Budhathoki",
   role: "Full stack developer, building for web & mobile from Nepal.",
-  line: "I grew up between hills. Now I climb codebases — one steady step at a time.",
+  line: "I grew up between hills. Now I climb codebases, one steady step at a time.",
   hint: "Hover the markers to say hi. Scroll to start the trek.",
 };
 

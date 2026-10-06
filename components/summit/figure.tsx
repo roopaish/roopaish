@@ -7,9 +7,12 @@ import { quietOthers } from "./bubbles";
 export const figureSizes = { fill: "h-full w-full", sm: "h-28 w-28 lg:h-36 lg:w-36", md: "h-36 w-36 lg:h-44 lg:w-44", lg: "h-44 w-44 lg:h-52 lg:w-52" };
 
 // Each object keeps its own little confession. It types itself out on hover and
-// springs back into hiding the moment the cursor leaves. The object tilts toward
+// springs back into hiding the moment the cursor leaves. With `autoAt` (the
+// canvas x, in vw, the thread must reach) or `autoOpen` (on a phone: once the
+// thread has drawn down to it) it also says it once by itself as the trail
+// arrives, then stays quiet until hovered. The object tilts toward
 // the pointer and floats above a soft ground shadow so it reads as 3D.
-export function Figure({ src, alt, label, className, delay, size = "md", still = false, hang = false, labelBelow = false, labelStyle }: { src: string; alt: string; label?: string | undefined; className?: string; delay?: string; size?: keyof typeof figureSizes | undefined; still?: boolean; hang?: boolean; labelBelow?: boolean | undefined; labelStyle?: CSSProperties }) {
+export function Figure({ src, alt, label, className, delay, size = "md", still = false, hang = false, labelBelow = false, labelStyle, autoAt, autoOpen = false }: { src: string; alt: string; label?: string | undefined; className?: string; delay?: string; size?: keyof typeof figureSizes | undefined; still?: boolean; hang?: boolean; labelBelow?: boolean | undefined; labelStyle?: CSSProperties; autoAt?: number | undefined; autoOpen?: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [typed, setTyped] = useState("");
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -17,6 +20,11 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
   // the screen instead of centred, so the words never run off-screen.
   const [align, setAlign] = useState<"center" | "left" | "right">("center");
   const hideTimer = useRef(0);
+  // The one automatic opening: spent once it has happened or the object has
+  // been hovered, so it never opens by itself again.
+  const autoDone = useRef(false);
+  const pointerInside = useRef(false);
+  const autoTimer = useRef(0);
 
   const open = (el: HTMLElement) => {
     quietOthers(id.current);
@@ -27,7 +35,10 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
     setAlign(middle < 140 ? "left" : middle > window.innerWidth - 140 ? "right" : "center");
   };
 
-  useEffect(() => () => window.clearTimeout(hideTimer.current), []);
+  useEffect(() => () => {
+    window.clearTimeout(hideTimer.current);
+    window.clearTimeout(autoTimer.current);
+  }, []);
 
   // Only one confession at a time: opening this one closes any other.
   const id = useRef(Math.random());
@@ -39,8 +50,53 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
     return () => window.removeEventListener("figure-open", close);
   }, []);
 
-  // A tap anywhere else closes the confession.
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // Says its line once, then closes by itself unless the pointer is on it.
+  const sayOnce = () => {
+    const el = rootRef.current;
+    if (autoDone.current || !el) return;
+    autoDone.current = true;
+    open(el);
+    autoTimer.current = window.setTimeout(() => {
+      if (!pointerInside.current) setHovered(false);
+    }, 3400);
+  };
+
+  // Desktop: the scroll loop marks this object data-shown the moment the
+  // thread's tip reaches it.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (autoAt === undefined || !el) return;
+    const check = () => {
+      if (el.hasAttribute("data-shown")) sayOnce();
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(el, { attributes: true, attributeFilter: ["data-shown"] });
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAt]);
+
+  // Phone: the thread is drawn down to ~70% of the screen, so say it once the
+  // object has scrolled up that far.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!autoOpen || !el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        sayOnce();
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px -30% 0px", threshold: 0.6 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
+
+  // A tap anywhere else closes the confession.
   useEffect(() => {
     if (!hovered) return;
     const away = (e: PointerEvent) => {
@@ -68,7 +124,12 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
     <div
       ref={rootRef}
       className={cn("relative shrink-0 [perspective:900px]", figureSizes[size], className)}
+      data-at={autoAt}
+      data-mode={autoAt === undefined ? undefined : "thread"}
       onPointerEnter={(e) => {
+        pointerInside.current = true;
+        autoDone.current = true;
+        window.clearTimeout(autoTimer.current);
         if (e.pointerType !== "touch") open(e.currentTarget);
       }}
       // A tap opens the confession and keeps it up for a moment; a touch
@@ -84,6 +145,7 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
         setTilt({ x: ((e.clientX - r.left) / r.width - 0.5) * 2, y: ((e.clientY - r.top) / r.height - 0.5) * 2 });
       }}
       onPointerLeave={(e) => {
+        pointerInside.current = false;
         if (e.pointerType === "touch") return;
         setHovered(false);
         setTilt({ x: 0, y: 0 });
@@ -121,6 +183,6 @@ export function Figure({ src, alt, label, className, delay, size = "md", still =
   );
 }
 
-export function SceneObject({ src, alt, label, style, delay, size, labelBelow }: { src: string; alt: string; label?: string | undefined; style: CSSProperties; delay: string; size?: keyof typeof figureSizes; labelBelow?: boolean }) {
-  return <div className="absolute" style={style}><Figure src={src} alt={alt} label={label} delay={delay} size={size} labelBelow={labelBelow} /></div>;
+export function SceneObject({ src, alt, label, style, delay, size, labelBelow, autoAt }: { src: string; alt: string; label?: string | undefined; style: CSSProperties; delay: string; size?: keyof typeof figureSizes; labelBelow?: boolean; autoAt?: number }) {
+  return <div className="absolute" style={style}><Figure src={src} alt={alt} label={label} delay={delay} size={size} labelBelow={labelBelow} autoAt={autoAt} /></div>;
 }

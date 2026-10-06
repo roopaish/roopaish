@@ -2,22 +2,19 @@
 
 import { art, copy } from "@/data/summit";
 import { cn } from "@/lib/utils";
-import { ArrowDown } from "lucide-react";
+import { AppWindow, ArrowDown, ArrowRight, ChevronLeft, Code2, FileText, Server } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Figure, SceneObject } from "./figure";
 import {
   at,
   BAND,
   BAND_MARGIN_VH,
-  BUTTON_X,
+  BUTTON_WIDTH_VW,
   BUTTON_Y,
+  CANVAS_VW,
   getThreadSamples,
   KEY_TOP,
   KEY_X,
-  LOOP_ASPECT,
-  LOOP_R,
-  LOOP_X,
-  LOOP_Y,
 } from "./thread";
 import { IntroNote } from "./intro-note";
 import { useIntroTyped } from "./intro-state";
@@ -55,22 +52,22 @@ function Note({ x, y, className, at: revealAt, children }: { x: number; y: numbe
   return <div className={cn("absolute", className)} style={at(x, y)} data-at={revealAt}>{children}</div>;
 }
 
-// i tinker with a lot of stuff — a quiet line in the middle, the objects
+// i tinker with a lot of stuff: a quiet line in the middle, the objects
 // scattered around it, and the thread looping between them.
 export function TinkerScene() {
   return (
     <div>
-      <span hidden data-mode="thread" data-at={112} data-say={copy.tinker.say} />
       <Note x={120} y={42} className="reveal w-[38vw] text-center" at={122}>
         <p className="text-lg text-foreground">{copy.tinker.lead}</p>
         <h2 className="whitespace-nowrap font-story text-5xl leading-tight">{copy.tinker.title}</h2>
         <p className="mt-2 text-lg text-foreground">{copy.tinker.sub}</p>
       </Note>
-      <SceneObject src={art.laptop} alt="a laptop covered in stickers" label={copy.tinker.laptop} style={at(106, 19)} size="sm" delay="0s" />
-      <SceneObject src={art.astronaut} alt="a rocket" label={copy.tinker.camera} style={at(104, 60)} size="sm" delay=".6s" />
-      <SceneObject src={art.movies} alt="a clapperboard" label={copy.tinker.movies} style={at(124, 68)} size="sm" delay="1.2s" />
-      <SceneObject src={art.keys} alt="a keyboard" label={copy.tinker.keys} style={at(136, 18)} size="sm" delay=".3s" />
-      <SceneObject src={art.nature} alt="pine trees on a hill" label={copy.tinker.nature} style={at(150, 68)} size="sm" delay="1.5s" />
+      <SceneObject src={art.laptop} alt="a laptop covered in stickers" label={copy.tinker.laptop} style={at(106, 19)} size="sm" autoAt={116} delay="0s" />
+      <SceneObject src={art.cursor} alt="a selection box with a cursor" label={copy.tinker.design} style={at(121, 11)} size="sm" autoAt={126} delay=".9s" />
+      <SceneObject src={art.keys} alt="a keyboard" label={copy.tinker.keys} style={at(136, 18)} size="sm" autoAt={141} delay=".3s" />
+      <SceneObject src={art.phone} alt="a phone" label={copy.tinker.phone} style={at(104, 60)} size="sm" autoAt={109} delay=".6s" />
+      <SceneObject src={art.blocks} alt="three linked blocks" label={copy.tinker.blocks} style={at(124, 68)} size="sm" autoAt={129} delay="1.2s" />
+      <SceneObject src={art.server} alt="a small server rack" label={copy.tinker.server} style={at(150, 68)} size="sm" autoAt={155} delay="1.5s" />
     </div>
   );
 }
@@ -92,17 +89,16 @@ function sampleThread(from: number, to: number) {
 
 export const heart = copy.heart.items.map((item) => ({ ...item, src: art[item.key as keyof typeof art] }));
 
-// but few things have my heart — each one an object with a big line and a
+// but few things have my heart: each one an object with a big line and a
 // quiet one beside it, and the thread running calmly between the objects.
 export function HeartScene() {
   return (
     <div>
-      <span hidden data-mode="thread" data-at={184} data-say={copy.heart.say} />
-      <Note x={181} y={18} className="reveal w-[22rem]" at={182}><h2 className="font-story text-5xl leading-none">{copy.heart.title}</h2></Note>
+      <Note x={181} y={14} className="reveal w-[26rem]" at={182}><h2 className="font-story text-5xl leading-none">{copy.heart.title}</h2></Note>
       {heart.map((h, index) => (
         <Note key={h.title} x={h.x} y={h.y} className="reveal flex items-center gap-5" at={h.x + 2}>
-          <Figure src={h.src} alt={h.alt} label={h.label} delay={`${index * 0.5}s`} />
-          <div className="w-64">
+          <Figure src={h.src} alt={h.alt} label={h.label} delay={`${index * 0.5}s`} autoAt={h.x + 6} />
+          <div className="w-72">
             <p className="font-story text-3xl leading-tight">{h.title}</p>
             <p className="mt-2 text-foreground">{h.body}</p>
           </div>
@@ -120,7 +116,7 @@ const TIMELINE_STEP = 18;
 const STEM = 11;
 
 // The thread curves gently through the years. Each year hangs off it on a thin
-// stem — alternating above and below — and only appears once the thread
+// stem, alternating above and below, and only appears once the thread
 // arrives. Underneath, what all of it keeps adding up to.
 export function TimelineScene() {
   const [ys, setYs] = useState<number[] | null>(null);
@@ -138,7 +134,6 @@ export function TimelineScene() {
 
   return (
     <div>
-      <span hidden data-mode="thread" data-at={306} data-say={copy.timeline.say} />
       {ys && timeline.map((stop, index) => {
         const x = TIMELINE_FROM + index * TIMELINE_STEP;
         const y = ys[index] ?? 50;
@@ -156,67 +151,135 @@ export function TimelineScene() {
         );
       })}
       {/* Each phrase fades in as the thread passes over it, like the years. */}
-      <Note x={380} y={83} className="reveal w-[25rem] text-lg leading-snug" at={380}>
+      <Note x={372} y={79} className="reveal w-[30rem] text-lg leading-snug" at={380}>
         <p>{copy.timeline.summaryTop}</p>
-        <p className="text-foreground">{copy.timeline.summaryBottom}</p>
+        <p className="mt-2 text-foreground">{copy.timeline.summaryBottom}</p>
+        <LearnSequence at={380} />
       </Note>
     </div>
   );
 }
 
-// The habit that keeps repeating, told as a cycle: the thread ties one big
-// loop beside the line, and the four steps sit around it in the order the
-// thread draws them — bottom, right, top, left — with "repeat." in the middle.
-export const LOOP_RX = LOOP_R / LOOP_ASPECT;
-const habitPositions = [
-  { x: LOOP_X, y: LOOP_Y, place: "below" },
-  { x: LOOP_X + LOOP_RX, y: LOOP_Y - LOOP_R, place: "right" },
-  { x: LOOP_X, y: LOOP_Y - 2 * LOOP_R, place: "above" },
-  { x: LOOP_X - LOOP_RX, y: LOOP_Y - LOOP_R, place: "left" },
-] as const;
-const habit = habitPositions.map((position, index) => ({ ...position, step: copy.habit.steps[index] ?? "" }));
+const sequenceIcons = { docs: FileText, code: Code2, browser: AppWindow, server: Server };
 
-const habitLabel = {
-  below: "-translate-x-1/2 translate-y-4",
-  right: "translate-x-5 -translate-y-1/2",
-  above: "-translate-x-1/2 -translate-y-[calc(100%+1rem)]",
-  left: "-translate-x-[calc(100%+1.25rem)] -translate-y-1/2",
+// docs → code → browser → server: how something I read about ends up running,
+// each stop appearing a beat after the one before.
+export function LearnSequence({ at: revealAt, className }: { at?: number; className?: string }) {
+  const stops = copy.timeline.sequence;
+  const attrs = (index: number) => ({ "data-at": revealAt, style: { "--reveal-delay": `${0.5 + index * 0.35}s` } as CSSProperties });
+  return (
+    <div aria-hidden="true" className={cn("mt-4 flex items-center gap-2 text-sm", className)}>
+      {stops.map((stop, index) => {
+        const Icon = sequenceIcons[stop];
+        return (
+          <div key={stop} className="flex items-center gap-2">
+            {index > 0 && <ArrowRight className="reveal h-3.5 w-3.5 text-muted-foreground" {...attrs(index - 0.5)} />}
+            <span className="reveal flex items-center gap-1.5 rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1.5" {...attrs(index)}>
+              <Icon className="h-4 w-4" />
+              {stop}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// The habit that keeps repeating, told as a git graph. The thread is `main`.
+// A feature branch splits off above it and carries the middle steps, a hotfix
+// branch dips below it for a moment, and both merge back. After the last step
+// the line forks again and runs all the way back to rejoin main before the
+// first step: the repeat, drawn as part of the same line. Each branch starts
+// drawing the moment the trail reaches the point it leaves from, and every
+// join is read off the thread itself, so lines meet it exactly.
+const GIT_FEATURE_Y = 58;
+const GIT_FIX_Y = 83;
+const GIT_LOOP_Y = 92;
+
+// The thread's height (viewBox units) where it passes canvas x (vw).
+const { xs: threadXs, ys: threadYs } = getThreadSamples();
+const threadAt = (x: number) => {
+  let i = 0;
+  while (i < threadXs.length - 1 && (threadXs[i] ?? 0) < x * 10) i += 1;
+  return Math.round(threadYs[i] ?? 720);
 };
 
+// Where each step's commit sits on the canvas (vw / cqh), in step order.
+const commits = [
+  { x: 456, y: threadAt(456) / 10, place: "below" },
+  { x: 463, y: GIT_FEATURE_Y, place: "above" },
+  { x: 470, y: GIT_FEATURE_Y, place: "above" },
+  { x: 477, y: threadAt(477) / 10, place: "below" },
+  { x: 485, y: threadAt(485) / 10, place: "above" },
+] as const;
+const git = copy.habit.steps.map((step, index) => ({ step, ...commits[index]! }));
+
+// The branches, in the thread's own viewBox units (10 per vw / cqh). `at` is
+// the canvas x the trail must reach before the branch starts drawing.
+const FEATURE_AT = 458;
+const FIX_AT = 463;
+const LOOP_AT = 487;
+const GIT_FEATURE = `M4570 ${threadAt(457)} C4600 ${threadAt(457)} 4600 ${GIT_FEATURE_Y * 10} 4630 ${GIT_FEATURE_Y * 10} L4700 ${GIT_FEATURE_Y * 10} C4740 ${GIT_FEATURE_Y * 10} 4740 ${threadAt(477)} 4770 ${threadAt(477)}`;
+const GIT_FIX = `M4630 ${threadAt(463)} C4650 ${threadAt(463)} 4650 ${GIT_FIX_Y * 10} 4670 ${GIT_FIX_Y * 10} L4700 ${GIT_FIX_Y * 10} C4720 ${GIT_FIX_Y * 10} 4720 ${threadAt(474)} 4740 ${threadAt(474)}`;
+// The way back: out of main after the last commit, along the lowest lane in
+// reverse, round a turn below main, and up into it just before the first commit.
+const GIT_LOOP = `M4870 ${threadAt(487)} C4905 ${threadAt(487)} 4905 ${GIT_LOOP_Y * 10} 4850 ${GIT_LOOP_Y * 10} L4570 ${GIT_LOOP_Y * 10} C4470 ${GIT_LOOP_Y * 10} 4420 ${threadAt(449) + 70} 4470 ${threadAt(449) + 18} C4480 ${threadAt(449) + 5} 4490 ${threadAt(449)} 4500 ${threadAt(449)}`;
+const gitBranches = [
+  { d: GIT_FEATURE, at: FEATURE_AT },
+  { d: GIT_FIX, at: FIX_AT },
+  { d: GIT_LOOP, at: LOOP_AT },
+];
+
+const gitLabel = {
+  below: "-translate-x-1/2 translate-y-3",
+  above: "-translate-x-1/2 -translate-y-[calc(100%+0.75rem)]",
+};
+
+const gitView = `0 0 ${CANVAS_VW * 10} 1000`;
+// Branches are a touch lighter than the thread they split from.
+const gitPath = { fill: "none", stroke: "currentColor", strokeOpacity: 0.8, strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", pathLength: 1 } as const;
+
 export function HabitScene() {
-  // The loop is drawn in one go once the thread reaches it, so its steps
-  // arrive one after another, in drawing order.
-  const looped = LOOP_X + LOOP_RX + 1;
   return (
     <div>
       <Note x={428} y={22} className="reveal w-[32rem]" at={428}>
         <p className="font-story text-5xl leading-[1.05]">{copy.habit.title} <span className="text-foreground">{copy.habit.titleMuted}</span></p>
       </Note>
-      {habit.map(({ step, x, y, place }, index) => (
-        <div key={step} className="reveal" data-mode="thread" data-at={looped} style={{ "--reveal-delay": `${index * 0.25}s` } as CSSProperties}>
-          <span className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground" style={at(x, y)} />
-          <p className={cn("absolute whitespace-nowrap text-lg", habitLabel[place])} style={at(x, y)}>{step}</p>
+      {gitBranches.map(({ d, at: reach }) => (
+        <svg key={reach} aria-hidden="true" data-mode="thread" data-at={reach} className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox={gitView} preserveAspectRatio="none">
+          <path className="git-draw" d={d} {...gitPath} />
+        </svg>
+      ))}
+      {git.map(({ step, x, y, place }) => (
+        <div key={step} className="reveal git-reveal" data-mode="thread" data-at={x}>
+          <span className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-foreground bg-background" style={at(x, y)} />
+          <p className={cn("absolute w-max max-w-[4.75rem] text-center text-sm leading-tight", gitLabel[place])} style={at(x, y)}>{step}</p>
         </div>
       ))}
-      <p className="reveal absolute -translate-x-1/2 -translate-y-1/2 font-story text-3xl italic" data-mode="thread" data-at={looped} style={{ ...at(LOOP_X, LOOP_Y - LOOP_R), "--reveal-delay": "1s" } as CSSProperties}>{copy.habit.repeat}</p>
+      <span className="reveal git-reveal absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/80" data-mode="thread" data-at={FIX_AT + 4} style={at(468, GIT_FIX_Y)} />
+      <div className="reveal git-reveal" data-mode="thread" data-at={LOOP_AT}>
+        <ChevronLeft aria-hidden="true" className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background text-foreground/80" style={at(466, GIT_LOOP_Y)} />
+        <p className="absolute -translate-x-1/2 -translate-y-[calc(100%+0.3rem)] font-story text-xl italic" style={at(478, GIT_LOOP_Y)}>{copy.habit.repeat}</p>
+      </div>
     </div>
   );
 }
 
 // The thread stops. Whitespace. Then the turn into the work.
 export function FinaleScene({ onWork }: { onWork: () => void }) {
-  // The button is pinned to the thread's end point (its left edge, halfway
-  // down), so the thread meets it on every screen size; the words sit above.
+  // The last screen is one full 100vw panel, so when the trail runs out the
+  // words and the button sit in the middle of the screen. The thread ends at
+  // the button's left edge (the button is a fixed share of the width, so it
+  // meets it on every screen size); the words sit above it.
   return (
-    <>
-      <span hidden data-mode="thread" data-at={BUTTON_X - 8} data-say={copy.finale.say} />
-      <Note x={BUTTON_X + 4.6} y={BUTTON_Y - 6} className="reveal w-[46vw] -translate-x-1/2 -translate-y-full text-center" at={BUTTON_X - 14}>
+    <div className="absolute top-0 h-full w-screen" style={{ left: `${CANVAS_VW - 100}vw` }}>
+      <div className="reveal absolute inset-x-0 -translate-y-full text-center" data-at={CANVAS_VW - 100 + 20} style={{ top: `${BUTTON_Y - 6}cqh` }}>
         <p className="text-lg text-foreground">{copy.finale.lead}</p>
         <h2 className="mt-3 font-story text-5xl">{copy.finale.title}</h2>
-      </Note>
-      <div className="absolute -translate-y-1/2" style={at(BUTTON_X, BUTTON_Y)}>
-        <SiteButton variant="glassDark" onClick={onWork} data-cursor={copy.finale.buttonCursor}>{copy.finale.button} <ArrowDown className="ml-2 h-4 w-4" /></SiteButton>
       </div>
-    </>
+      <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ top: `${BUTTON_Y}cqh` }}>
+        <SiteButton variant="glassDark" onClick={onWork} data-cursor={copy.finale.buttonCursor} className="justify-center whitespace-nowrap" style={{ width: `${BUTTON_WIDTH_VW}vw`, minWidth: "11rem" }}>{copy.finale.button} <ArrowDown className="ml-2 h-4 w-4" /></SiteButton>
+      </div>
+    </div>
   );
 }

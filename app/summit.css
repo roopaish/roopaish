@@ -29,6 +29,23 @@
   transition-delay: 0s;
 }
 
+/* The git graph's words and dots come in quicker than the rest of the story. */
+.reveal.git-reveal {
+  transition-duration: 0.45s;
+}
+
+/* A git branch draws itself once its graph is shown (the scroll loop, or the
+   phone's observer, sets data-shown on the graph). */
+.git-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--git-time, 0.7s) cubic-bezier(0.45, 0, 0.3, 1) var(--git-delay, 0s);
+}
+
+[data-shown] .git-draw {
+  stroke-dashoffset: 0;
+}
+
 @keyframes float-object {
   0%,
   100% {

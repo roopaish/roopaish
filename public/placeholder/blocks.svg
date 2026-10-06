@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Placeholder: three linked blocks, a tiny system. -->
+  <g stroke="#8a8a99" stroke-width="3" stroke-linecap="round">
+    <path d="M64 44 L38 74"/><path d="M64 44 L90 74"/><path d="M38 90 L90 90"/>
+  </g>
+  <g>
+    <path d="M64 8l19 11-19 11-19-11z" fill="#f9bb74"/><path d="M45 19l19 11v22L45 41z" fill="#f08a24"/><path d="M83 19L64 30v22l19-11z" fill="#c9690f"/>
+    <path d="M36 56l19 11-19 11-19-11z" fill="#8fb0fa"/><path d="M17 67l19 11v22L17 89z" fill="#3e7bfa"/><path d="M55 67L36 78v22l19-11z" fill="#2a58c4"/>
+    <path d="M92 56l19 11-19 11-19-11z" fill="#6fd3a6"/><path d="M73 67l19 11v22L73 89z" fill="#2fb47c"/><path d="M111 67L92 78v22l19-11z" fill="#1f8a5c"/>
+  </g>
+</svg>

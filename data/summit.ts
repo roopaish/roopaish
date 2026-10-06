@@ -23,14 +23,14 @@ export const summitLinks = {
 /** Placeholder art. Every file lives in public/placeholder (see CREDITS.md). */
 export const art = {
   laptop: "/placeholder/laptop.png",
-  camera: "/placeholder/phone.png",
-  movies: "/placeholder/movies.svg",
+  phone: "/placeholder/phone.png",
   keys: "/placeholder/keyboard.png",
-  nature: "/placeholder/nature.svg",
-  globe: "/placeholder/globe.png",
-  brain: "/placeholder/bulb.png",
-  astronaut: "/placeholder/rocket.png",
-  robot: "/placeholder/robot.png",
+  blocks: "/placeholder/blocks.svg",
+  cursor: "/placeholder/cursor.svg",
+  browser: "/placeholder/browser.svg",
+  phoneUi: "/placeholder/phone-ui.svg",
+  api: "/placeholder/api.svg",
+  server: "/placeholder/server.svg",
 };
 
 export const copy = {
@@ -44,30 +44,31 @@ export const copy = {
     talk: "let's talk",
   },
   tinker: {
-    say: "careful. side trails ahead.",
-    lead: "i'm curious about a lot.",
-    title: "so many things i'm into.",
-    sub: "coding, building and launching things, binging movies and series, and wandering out on nature walks.",
-    laptop: "coding. where most things begin.",
-    camera: "building and launching, mostly on weekends.",
-    movies: "movies and series. one more episode. always.",
+    lead: "i like seeing how things come together.",
+    title: "from pixels to production.",
+    sub: "interfaces, APIs, mobile apps, databases, servers. i like working across the whole stack.",
+    laptop: "the interface. where most things begin.",
+    design: "pixels, spacing, the one more nudge.",
     keys: "one more feature. just one.",
-    nature: "the best debugging happens on a nature walk.",
+    phone: "the same ideas, in your pocket.",
+    blocks: "small pieces, wired into a system.",
+    server: "and somewhere, it all has to run.",
   },
   heart: {
-    say: "okay, the soft part.",
-    title: "but few things have my heart.",
-    mobileTitle: ["but few things", "have my heart."],
+    title: "a few parts of software keep pulling me back.",
+    mobileTitle: ["a few parts of", "software keep", "pulling me back."],
     items: [
-      { key: "globe", alt: "a globe wrapped in orbits", x: 200, y: 56, title: "the web came first.", body: "browsers, then servers, then everything in between.", label: "yes, i'm still here." },
-      { key: "camera", alt: "a phone", x: 224, y: 22, title: "then mobile, in my pocket.", body: "same love for the craft, a much smaller screen.", label: "flutter, react native, repeat." },
-      { key: "brain", alt: "a lightbulb", x: 260, y: 60, title: "now, whole products.", body: "from the database to the app store.", label: "still figuring out the shortcuts." },
+      { key: "browser", alt: "a browser window", x: 200, y: 56, title: "it usually starts with the interface.", body: "layouts, interactions, motion, accessibility, the details people actually touch.", label: "yes, i'll nudge it one more pixel." },
+      { key: "phoneUi", alt: "a phone showing a few interface blocks", x: 224, y: 22, title: "then the same ideas, in your pocket.", body: "native-feeling interactions, smaller screens, same attention to detail.", label: "flutter, react native, repeat." },
+      { key: "api", alt: "API nodes wired to a database", x: 248, y: 48, title: "behind every screen, there's a system.", body: "APIs, authentication, queues, payments, databases and the logic holding everything together.", label: "the unglamorous part. my favourite." },
+      { key: "server", alt: "a small server rack with blinking lights", x: 271, y: 21, title: "and eventually, it has to live somewhere.", body: "deployments, containers, domains, logs, servers. whatever gets it into production.", label: "it works on my machine. and now on yours." },
     ],
   },
   timeline: {
-    say: "the short version. very short.",
-    summaryTop: "when something sparks my curiosity, i dive in: read up, binge it, explore.",
-    summaryBottom: "then i put it to work, switch to it, and you can see it in how i build.",
+    summaryTop: "when something catches my attention, i usually end up understanding how it works.",
+    summaryBottom: "pull it apart. rebuild a version. make it nicer. ship it somewhere.",
+    // docs → code → browser → server, shown one after another beneath it.
+    sequence: ["docs", "code", "browser", "server"] as const,
     // TODO: your real years and stories.
     stops: [
       { year: "2019", title: "where it started.", line: "software engineering in Kathmandu, Nepal." },
@@ -80,12 +81,11 @@ export const copy = {
   },
   habit: {
     title: "apparently,",
-    titleMuted: "i just love building things.",
-    steps: ["spot the problem.", "sketch the route.", "build it.", "ship it."] as const,
+    titleMuted: "i just like turning ideas into working things.",
+    steps: ["spot the problem.", "sketch the experience.", "build the system.", "ship it.", "make it better."] as const,
     repeat: "repeat.",
   },
   finale: {
-    say: "go on. it's the good part.",
     lead: "enough about me.",
     title: "let's look at the work i've done.",
     mobileTitle: ["let's look at the", "work i've done."],

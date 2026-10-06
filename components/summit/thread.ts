@@ -29,14 +29,12 @@ export type Waypoint = [x: number, y: number, loop?: number];
 // rather than squashed.
 export const LOOP_ASPECT = 1.8 / BAND;
 
-// Where the thread finally ends: at the "see the work" button.
-export const BUTTON_X = 537;
+// Where the thread finally ends: at the left edge of the "see the work"
+// button, which sits in the middle of the last screen (the canvas's final 100vw
+// span x = CANVAS_VW - 100 .. CANVAS_VW, so its middle is x = CANVAS_VW - 50).
+export const BUTTON_WIDTH_VW = 13;
+export const BUTTON_X = CANVAS_VW - 50 - BUTTON_WIDTH_VW / 2;
 export const BUTTON_Y = 59;
-
-// The big loop the habit is tied around, near the end of the story.
-export const LOOP_X = 474;
-export const LOOP_Y = 70;
-export const LOOP_R = 17;
 
 // The thread is a Catmull-Rom curve through the waypoints (plus the extra
 // points each loop adds), written out as cubic Béziers in viewBox units.
@@ -115,13 +113,14 @@ const CABLE_WAYPOINTS: Waypoint[] = [[KEY_X, KEY_TOP], [47.5, 30], [53, 25.2]];
 
 // ...and becomes the trail: it loops between the things I tinker with, smooths
 // out through the few things that have my heart, runs straight along the
-// timeline, and simply stops before the work.
+// timeline, runs level as `main` through the habit's git graph, and simply
+// stops before the work.
 export const TRAIL_WAYPOINTS: Waypoint[] = [
   [56.9, 19.9], [80, 58], [98, 50], [110, 44, 8], [120, 66], [132, 68], [142, 66, -6],
   [151, 56], [156, 40], [164, 29], [171, 33], [174.5, 35.6], [181, 42], [186, 62], [198, 68],
-  [205, 68], [216, 50], [229, 34], [233, 50], [250, 58], [262, 70], [272, 88], [292, 54],
+  [205, 68], [216, 50], [229, 34], [238, 46], [253, 62], [265, 48], [277, 34], [282, 52], [292, 56],
   [304, 48], [322, 51], [340, 52], [358, 50], [376, 46], [394, 43], [410, 46],
-  [422, 60], [440, 70], [458, 71], [LOOP_X, LOOP_Y, LOOP_R], [496, 76], [514, 78], [528, 70], [BUTTON_X, BUTTON_Y],
+  [422, 60], [440, 70], [456, 72], [468, 72], [480, 72], [492, 72], [503, 67], [BUTTON_X, BUTTON_Y],
 ];
 
 // One continuous curve through cable and trail, split where the cable ends so
